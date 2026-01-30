@@ -20,11 +20,13 @@ class SettingsController extends Controller
 
     public function update(Request $request)
     {
-        $validated = $request->validate([
-            'settings' => 'required|array',
-        ]);
+        // Accept either { settings: {...} } or just {...}
+        $settingsData = $request->has('settings') ? $request->get('settings') : $request->all();
 
-        foreach ($validated['settings'] as $key => $value) {
+        foreach ($settingsData as $key => $value) {
+            // Skip timestamp fields if they leaked into the request
+            if (in_array($key, ['created_at', 'updated_at'])) continue;
+
             DB::table('settings')->updateOrInsert(
                 ['key' => $key],
                 ['value' => json_encode($value), 'updated_at' => now()]

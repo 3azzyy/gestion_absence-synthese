@@ -1,45 +1,4 @@
-import axios from 'axios';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
-
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 15000,
-  headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json'
-  },
-  withCredentials: true
-});
-
-api.interceptors.request.use(
-  (config) => {
-    const session = localStorage.getItem('ista_auth_session');
-    if (session) {
-      try {
-        const parsedSession = JSON.parse(session);
-        if (parsedSession.token) {
-          config.headers.Authorization = `Bearer ${parsedSession.token}`;
-        }
-      } catch (error) {
-        console.error('Erreur parsing session:', error);
-      }
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('ista_auth_session');
-      window.location.href = '/';
-    }
-    return Promise.reject(error);
-  }
-);
+import api from './http';
 
 const handleResponse = (response) => ({
   success: true,

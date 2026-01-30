@@ -110,6 +110,72 @@ class StudentController extends Controller
         return response()->json(['success' => true, 'data' => $stats]);
     }
 
-    public function exportCsv() { /* Implement CSV logic */ return response()->json(['message' => 'Export started']); }
-    public function import(Request $request) { /* Implement Import logic */ return response()->json(['message' => 'Import started']); }
+    
+    
+public function exportCsv()
+    {
+        $students = Student::with('group')->get();
+        $fileName = 'students_export_' . date('Y-m-d') . '.csv';
+
+        $headers = [
+            "Content-type"        => "text/csv",
+            "Content-Disposition" => "attachment; filename=$fileName",
+            "Pragma"              => "no-cache",
+            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+            "Expires"             => "0"
+        ];
+
+        $columns = ['CEF', 'First Name', 'Last Name', 'Group', 'Email', 'Level', 'Hours'];
+
+        $callback = function() use($students, $columns) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $columns);
+
+            foreach ($students as $student) {
+                fputcsv($file, [
+                    $student->cef,
+                    $student->first_name,
+                    $student->last_name,
+                    $student->group?->name,
+                    $student->email,
+                    $student->level,
+                    $student->hours,
+                ]);
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate(['file' => 'required|file|mimes:csv,txt']);
+        
+        $file = fopen($request->file('file')->getRealPath(), 'r');
+        $header = fgetcsv($file); // Skip header row
+        
+        $imported = 0;
+        DB::beginTransaction();
+        try {
+            while (($row = fgetcsv($file)) !== FALSE) {
+                // Map CSV columns to Database (Example mapping: 0=cef, 1=fn, 2=ln...)
+                Student::updateOrCreate(
+                    ['cef' => $row[0]],
+                    [
+                        'first_name' => $row[1],
+                        'last_name'  => $row[2],
+                        'email'      => $row[4] ?? null,
+                        'level'      => $row[5] ?? null,
+                    ]
+                );
+                $imported++;
+            }
+            DB::commit();
+            return response()->json(['success' => true, 'message' => "Imported $imported students"]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => 'Import failed: ' . $e->getMessage()], 500);
+        }
+    }
 }
