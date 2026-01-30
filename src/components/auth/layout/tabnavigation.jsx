@@ -1,0 +1,33 @@
+import React from 'react';
+import { BarChart3, Users, Printer } from 'lucide-react';
+
+const TabsNavigation = ({ activeTab, setActiveTab }) => (
+  <div className="tabs">
+    <button 
+      className={`tab ${activeTab === 'dashboard' ? 'active' : ''}`} 
+      onClick={() => setActiveTab('dashboard')}
+    >
+      <BarChart3 size={16} style={{display: 'inline', marginRight: 4}} /> Tableau de bord
+    </button>
+    <button 
+      className={`tab ${activeTab === 'students' ? 'active' : ''}`} 
+      onClick={() => setActiveTab('students')}
+    >
+      <Users size={16} style={{display: 'inline', marginRight: 4}} /> Stagiaires
+    </button>
+    <button 
+      className={`tab ${activeTab === 'analytics' ? 'active' : ''}`} 
+      onClick={() => setActiveTab('analytics')}
+    >
+      <BarChart3 size={16} style={{display: 'inline', marginRight: 4}} /> Analyses
+    </button>
+    <button 
+      className={`tab ${activeTab === 'print' ? 'active' : ''}`} 
+      onClick={() => setActiveTab('print')}
+    >
+      <Printer size={16} style={{display: 'inline', marginRight: 4}} /> Impressions
+    </button>
+  </div>
+);
+
+export default TabsNavigation;
