@@ -25,10 +25,10 @@ const AddAbsenceModal = ({ trainee, onClose, onSave }) => {
 
   // Séances 
 const seancesList = [
-  { key: 'seance1', label: 'Séance 1', time: '8h30 - 10h50', heures: 2.33 },
-  { key: 'seance2', label: 'Séance 2', time: '11h10 - 13h30', heures: 2.33 },
-  { key: 'seance3', label: 'Séance 3', time: '13h30 - 15h50', heures: 2.33 },
-  { key: 'seance4', label: 'Séance 4', time: '16h10 - 18h30', heures: 2.33 }
+  { key: 'seance1', label: 'Séance 1', time: '8h30 - 11h00', heures: 2.5 },
+  { key: 'seance2', label: 'Séance 2', time: '11h00 - 13h30', heures: 2.5 },
+  { key: 'seance3', label: 'Séance 3', time: '13h30 - 16h00', heures: 2.5 },
+  { key: 'seance4', label: 'Séance 4', time: '16h00 - 18h30', heures: 2.5 }
 ];
 
   // Ajouter une nouvelle absence
@@ -85,7 +85,7 @@ const calculateAbsenceHours = (absence) => {
   } else {
     // Compter les séances cochées et multiplier par 2.33 heures
     const seancesChecked = Object.values(absence.seances).filter(Boolean).length;
-    return seancesChecked * 2.33; // Chaque séance = 2h20min = 2.33h
+    return seancesChecked * 2.5; // Chaque séance = 2h20min = 2.33h
   }
 };
   // Sauvegarder les absences
