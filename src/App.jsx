@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import axios from 'axios';
 
 // Composants
-
 import GlobalStyles from './components/auth/common/globalstyle.jsx';
 import AlertContainer from './components/auth/common/alertcontainer.jsx';
 import LoginPage from './components/auth/login.jsx';
@@ -12,101 +12,24 @@ import DashboardTab from './components/auth/dashboard/dashboardtab.jsx';
 import StudentsTab from './components/auth/students/studentstab.jsx';
 import AnalyticsTab from './components/auth/analytics/analyticstab.jsx';
 import PrintTab from './components/auth/print/printtab.jsx';
+import ClassesTab from './components/auth/common/classes/ClassesTab.jsx';
+import UserManagement from './components/auth/admin/UserManagement.jsx';
+// Modals
 import AddTraineeModal from './components/auth/modals/addtraineemodal.jsx';
 import EditTraineeModal from './components/auth/modals/edittraineemodal.jsx';
 import SettingsModal from './components/auth/modals/settingsmodal.jsx';
 import BackupModal from './components/auth/modals/backupmodal.jsx';
-import axios from 'axios';
-// import ClassesTab from './components/classes/ClassesTab';
-//classes
-
-
-// const App = () => {
-//   const [activeTab, setActiveTab] = useState('dashboard');
-//   const [trainees, setTrainees] = useState([]);
-//   const [groups, setGroups] = useState([]);
-  
-//   // États pour les filtres de l'onglet Stagiaires
-//   const [groupFilter, setGroupFilter] = useState('');
-//   const [statusFilter, setStatusFilter] = useState('');
-//   const [searchInput, setSearchInput] = useState('');
-  
-//   // États pour les filtres de l'onglet Classes
-//   const [classSearchInput, setClassSearchInput] = useState('');
-
-//   // Fonction pour naviguer vers l'onglet Stagiaires avec un filtre de groupe
-//   const handleViewClass = (className) => {
-//     setGroupFilter(className); // Appliquer le filtre de groupe
-//     setSearchInput(''); // Réinitialiser la recherche
-//     setStatusFilter(''); // Réinitialiser le filtre de statut
-//     setActiveTab('students'); // Basculer vers l'onglet Stagiaires
-//   };
-
-//   // Filtrer les classes pour la recherche
-//   const filteredGroups = groups.filter(group => 
-//     group.toLowerCase().includes(classSearchInput.toLowerCase())
-//   );
-
-//   // Filtrer les stagiaires selon les filtres actifs
-//   const filteredTrainees = trainees.filter(t => {
-//     const matchesGroup = !groupFilter || t.group === groupFilter;
-//     const matchesStatus = !statusFilter || t.sanction?.code === statusFilter;
-//     const matchesSearch = !searchInput || 
-//       t.name.toLowerCase().includes(searchInput.toLowerCase());
-    
-//     return matchesGroup && matchesStatus && matchesSearch;
-//   });
-
-//   return (
-//     <>
-//       {/* Vos autres composants */}
-      
-//       {activeTab === 'classes' && (
-//         <ClassesTab 
-//           trainees={trainees}
-//           groups={filteredGroups}
-//           searchInput={classSearchInput}
-//           setSearchInput={setClassSearchInput}
-//           onViewClass={handleViewClass}
-//         />
-//       )}
-
-//       {activeTab === 'students' && (
-//         <StudentsTab 
-//           trainees={filteredTrainees}
-//           groups={groups}
-//           groupFilter={groupFilter}
-//           setGroupFilter={setGroupFilter}
-//           statusFilter={statusFilter}
-//           setStatusFilter={setStatusFilter}
-//           searchInput={searchInput}
-//           setSearchInput={setSearchInput}
-//           // ... autres props
-//         />
-//       )}
-      
-
-//     </>
-//   );
-// };
 
 // Utilitaires
 import { DEFAULT_SANCTION_CONFIG } from './components/utils/constants';
 import { calculateDays, sanctionLabel, exportToCSV } from './components/utils/calculation';
-import { initDefaultUsers, getSession, authenticateUser, clearSession } from './components/utils/storage';
-import ClassesTab from './components/auth/common/classes/ClassesTab.jsx';
+import { getSession, authenticateUser, clearSession } from './components/utils/storage';
 
-
+// Configuration Axios par défaut
 axios.defaults.baseURL = 'http://127.0.0.1:8000';
 
-
-// =============================================
-// MAIN APP COMPONENT
-// =============================================
-
 export default function App() {
-
-
+  // Instance API pour les appels internes
   const api = axios.create({
     baseURL: 'http://127.0.0.1:8000/api',
     headers: {
@@ -115,12 +38,11 @@ export default function App() {
     }
   });
 
-
-  // États d'authentification
+  // --- ÉTATS D'AUTHENTIFICATION ---
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
 
-  // États de l'application
+  // --- ÉTATS DE L'APPLICATION ---
   const [activeTab, setActiveTab] = useState('dashboard');
   const [data, setData] = useState({ trainees: {} });
   const [settings, setSettings] = useState({
@@ -132,90 +54,60 @@ export default function App() {
   const [sanctionConfig, setSanctionConfig] = useState(DEFAULT_SANCTION_CONFIG);
   const [alerts, setAlerts] = useState([]);
 
-  // États des modals
+  // --- ÉTATS DES MODALS ---
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showBackupModal, setShowBackupModal] = useState(false);
   const [currentEditId, setCurrentEditId] = useState(null);
-  const [trainees, setTrainees] = useState([]);
 
-  // États des filtres
+  // --- ÉTATS DES FILTRES ---
   const [groupFilter, setGroupFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [searchInput, setSearchInput] = useState('');
+  const [classSearchInput, setClassSearchInput] = useState('');
 
   // =============================================
-  // INITIALISATION
+  // INITIALISATION & CHARGEMENT DES DONNÉES
   // =============================================
-
-  // useEffect(() => {
-  //   // Initialiser les utilisateurs par défaut
-  //   initDefaultUsers();
-
-  //   // Vérifier la session existante
-  //   const session = getSession();
-  //   if (session) {
-  //     setCurrentUser(session);
-  //     setIsAuthenticated(true);
-  //   }
-
-  //   // Charger les données sauvegardées
-  //   const savedData = localStorage.getItem('gestion_absences_2025');
-  //   const savedSettings = localStorage.getItem('gestion_absences_settings');
-  //   const savedSanctions = localStorage.getItem('gestion_absences_sanctions');
-
-  //   if (savedData) setData(JSON.parse(savedData));
-  //   if (savedSettings) setSettings(JSON.parse(savedSettings));
-  //   if (savedSanctions) setSanctionConfig(JSON.parse(savedSanctions));
-  // }, []);
 
   useEffect(() => {
     const session = getSession();
 
-    // 1. Define the fetch function inside or outside, but let it accept a token
     const fetchTraineesFromDB = async (token) => {
       try {
         const response = await api.get('/students', {
-          // Pass header explicitly to avoid race conditions on the first load
           headers: token ? { 'Authorization': `Bearer ${token}` } : {}
         });
 
-        // Extract from Laravel pagination: data (axios) -> data (laravel json) -> data (paginator)
         const apiTrainees = response.data.data.data || response.data.data || [];
-
         const formattedTrainees = {};
+        
         apiTrainees.forEach(student => {
           formattedTrainees[student.id] = {
             ...student,
             name: student.full_name,
-            heures: student.hours,
-            retards: student.tardies,
-            group: student.group?.name || student.class_group || 'Sans Groupe'
+            heures: student.hours || 0,
+            retards: student.tardies || 0,
+            group: student.group?.name || student.class_group || 'Sans Groupe',
+            absenceHistory: student.absenceHistory || []
           };
         });
 
         setData({ trainees: formattedTrainees });
       } catch (error) {
-        console.error("DB Fetch Error:", error);
-        // Fallback only if database is unreachable
-        setData({ trainees: {} });// or keep existing data
+        console.error("Erreur de récupération DB:", error);
+        setData({ trainees: {} });
       }
     };
 
-    // 2. Logic execution
     if (session && session.token) {
-      // Set global default for ALL future clicks/actions
-      api.defaults.headers.common['Authorization'] = `Bearer ${session.token}`;
-
+      axios.defaults.headers.common['Authorization'] = `Bearer ${session.token}`;
       setCurrentUser(session);
       setIsAuthenticated(true);
-
-      // Execute fetch with the known token
       fetchTraineesFromDB(session.token);
     }
 
-    // Settings & Sanctions
     const savedSettings = localStorage.getItem('gestion_absences_settings');
     const savedSanctions = localStorage.getItem('gestion_absences_sanctions');
     if (savedSettings) setSettings(JSON.parse(savedSettings));
@@ -223,139 +115,27 @@ export default function App() {
   }, []);
 
   // =============================================
-  // GESTION DES ALERTES
+  // LOGIQUE DE CALCUL ET FILTRAGE
   // =============================================
 
-  const showAlert = useCallback((msg, type = 'info') => {
-    const id = Date.now();
-    setAlerts(prev => [...prev, { id, msg, type }]);
-    setTimeout(() => {
-      setAlerts(prev => prev.filter(a => a.id !== id));
-    }, 5000);
-  }, []);
-
-  // =============================================
-  // AUTHENTIFICATION
-  // =============================================
-
-  const handleLogin = async (username, password) => {
-    const result = await authenticateUser(username, password);
-
-    console.log('Résultat de authenticateUser :', result);
-
-    if (result.success) {
-      setCurrentUser(result.session);
-      setIsAuthenticated(true);
-      return { success: true };
-    }
-
-    return { success: false };
+  const handleViewClass = (className) => {
+    setGroupFilter(className);
+    setSearchInput('');
+    setStatusFilter('');
+    setActiveTab('students');
   };
 
-  // const handleLogout = () => {
-  //   if (window.confirm('Voulez-vous vraiment vous déconnecter ?')) {
-  //     clearSession();
-  //     setIsAuthenticated(false);
-  //     setCurrentUser(null);
-  //     showAlert('Déconnexion réussie', 'success');
-  //   }
-  // };
+  const groups = [...new Set(Object.values(data.trainees).map(t => t.group))].sort();
 
-
-
-
-  const handleLogout = async () => {
-    if (window.confirm('Voulez-vous vraiment vous déconnecter ?')) {
-      // Wait for the server to invalidate the token
-      await clearSession();
-
-      // Update UI State
-      setIsAuthenticated(false);
-      setCurrentUser(null);
-      localStorage.removeItem('gestion_absences_2025');
-      // Reset data (optional, ensures no leftover data in state)
-      setData({ trainees: {} });
-
-      showAlert('Déconnexion réussie', 'success');
-    }
-  };
-
-  // =============================================
-  // GESTION DES DONNÉES
-  // =============================================
-
-  const saveData = useCallback((newData) => {
-    setData(newData);
-    // localStorage.setItem('gestion_absences_2025', JSON.stringify(newData));
-  }, []);
-
-  const restoreBackup = (backup) => {
-    if (backup.data) setData(backup.data);
-    if (backup.settings) setSettings(backup.settings);
-    if (backup.sanctionConfig) setSanctionConfig(backup.sanctionConfig);
-    // localStorage.setItem('gestion_absences_2025', JSON.stringify(backup.data));
-    localStorage.setItem('gestion_absences_settings', JSON.stringify(backup.settings));
-    if (backup.sanctionConfig) {
-      localStorage.setItem('gestion_absences_sanctions', JSON.stringify(backup.sanctionConfig));
-    }
-  };
-
-  // =============================================
-  // GESTION DES STAGIAIRES
-  // =============================================
-
-  const addTrainee = (traineeData) => {
-    const id = 'ST' + Date.now();
-    const newData = {
-      ...data,
-      trainees: {
-        ...data.trainees,
-        [id]: {
-          ...traineeData,
-          logs: [],
-          files: []
-        }
-      }
-    };
-    // saveData(newData);
-    showAlert(`Stagiaire ${traineeData.name} ajouté avec succès`, 'success');
-  };
-
-  const editTrainee = (id, traineeData) => {
-    const newData = {
-      ...data,
-      trainees: {
-        ...data.trainees,
-        [id]: {
-          ...data.trainees[id],
-          ...traineeData
-        }
-      }
-    };
-    // saveData(newData);
-    showAlert('Stagiaire modifié avec succès', 'success');
-    setShowEditModal(false);
-    setCurrentEditId(null);
-  };
-
-  const deleteTrainee = (id) => {
-    if (!window.confirm('Êtes-vous sûr de vouloir supprimer ce stagiaire ?')) return;
-    const newData = { ...data };
-    delete newData.trainees[id];
-    // saveData(newData);
-    showAlert('Stagiaire supprimé', 'success');
-  };
-
-  // =============================================
-  // FILTRAGE DES STAGIAIRES
-  // =============================================
+  const filteredGroupsForClasses = groups.filter(group => 
+    group.toLowerCase().includes(classSearchInput.toLowerCase())
+  );
 
   const getFilteredTrainees = useCallback(() => {
-    let trainees = Object.entries(data.trainees).map(([id, t]) => {
+    let traineesList = Object.entries(data.trainees).map(([id, t]) => {
       const days = calculateDays(t.heures, t.retards, settings);
       const sanction = sanctionLabel(days, sanctionConfig);
-      const attendance1 = Math.max(0, 100 - (days / settings.totalDays * 100));
-      const attendance = Math.max(0, 10 + (-1 * days) + (-1 * t.retards/4))
+      const attendance = Math.max(0, 10 + (-1 * days) + (-1 * t.retards/4));
 
       return {
         id,
@@ -370,41 +150,115 @@ export default function App() {
       };
     });
 
-    if (groupFilter) trainees = trainees.filter(t => t.group === groupFilter);
-    if (statusFilter) trainees = trainees.filter(t => t.sanction.code === statusFilter);
-    if (searchInput) trainees = trainees.filter(t =>
+    if (groupFilter) traineesList = traineesList.filter(t => t.group === groupFilter);
+    if (statusFilter) traineesList = traineesList.filter(t => t.sanction.code === statusFilter);
+    if (searchInput) traineesList = traineesList.filter(t =>
       t.name.toLowerCase().includes(searchInput.toLowerCase())
     );
 
-    return trainees;
+    return traineesList;
   }, [data.trainees, settings, sanctionConfig, groupFilter, statusFilter, searchInput]);
 
   const getformatedTrainees = useCallback(() => {
-    let trainees = Object.entries(data.trainees).map(([id, t]) => {
+    return Object.entries(data.trainees).map(([id, t]) => {
       const days = calculateDays(t.heures, t.retards, settings);
       const sanction = sanctionLabel(days, sanctionConfig);
       const attendance = Math.max(0, 100 - (days / settings.totalDays * 100));
 
       return {
-        id,
-        name: t.name,
-        group: t.group,
-        heures: t.heures || 0,
-        retards: t.retards || 0,
-        days: days,
-        attendance: attendance,
-        sanction: sanction,
-        data: t
+        id, name: t.name, group: t.group, heures: t.heures || 0,
+        retards: t.retards || 0, days: days, attendance: attendance,
+        sanction: sanction, data: t
       };
     });
-
-
-    return trainees;
-  }, [data.trainees, settings, sanctionConfig, groupFilter, statusFilter, searchInput]);
+  }, [data.trainees, settings, sanctionConfig]);
 
   // =============================================
-  // GESTION DES PARAMÈTRES
+  // GESTIONNAIRES D'ACTIONS (HANDLERS)
   // =============================================
+
+  const showAlert = useCallback((msg, type = 'info') => {
+    const id = Date.now();
+    setAlerts(prev => [...prev, { id, msg, type }]);
+    setTimeout(() => setAlerts(prev => prev.filter(a => a.id !== id)), 5000);
+  }, []);
+
+  const handleLogin = async (username, password) => {
+    const result = await authenticateUser(username, password);
+    if (result.success) {
+      setCurrentUser(result.session);
+      setIsAuthenticated(true);
+      showAlert('Connexion réussie', 'success');
+      return { success: true };
+    }
+    showAlert(result.error || 'Erreur de connexion', 'error');
+    return { success: false };
+  };
+
+  const handleLogout = async () => {
+    if (window.confirm('Voulez-vous vraiment vous déconnecter ?')) {
+      await clearSession();
+      setIsAuthenticated(false);
+      setCurrentUser(null);
+      setData({ trainees: {} });
+      showAlert('Déconnexion réussie', 'success');
+    }
+  };
+
+  const addTrainee = (traineeData) => {
+    const id = 'ST' + Date.now();
+    setData(prev => ({
+      ...prev,
+      trainees: { ...prev.trainees, [id]: { ...traineeData, absenceHistory: [] } }
+    }));
+    setShowAddModal(false);
+    showAlert(`Stagiaire ${traineeData.name} ajouté`, 'success');
+  };
+
+  const editTrainee = (id, traineeData) => {
+    setData(prev => ({
+      ...prev,
+      trainees: { ...prev.trainees, [id]: { ...prev.trainees[id], ...traineeData } }
+    }));
+    setShowEditModal(false);
+    setCurrentEditId(null);
+    showAlert('Stagiaire modifié', 'success');
+  };
+
+  const deleteTrainee = (id) => {
+    if (!window.confirm('Supprimer ce stagiaire ?')) return;
+    setData(prev => {
+      const newData = { ...prev.trainees };
+      delete newData[id];
+      return { ...prev, trainees: newData };
+    });
+    showAlert('Stagiaire supprimé', 'success');
+  };
+
+  const handleSaveAbsences = async (traineeId, newAbsences) => {
+    setData(prevData => {
+      const updatedTrainees = { ...prevData.trainees };
+      const trainee = updatedTrainees[traineeId];
+
+      if (trainee) {
+        const currentHistory = trainee.absenceHistory || [];
+        const additionalHeures = newAbsences
+          .filter(a => !a.isRetard)
+          .reduce((sum, a) => sum + parseFloat(a.heures || 0), 0);
+
+        const additionalRetards = newAbsences.filter(a => a.isRetard).length;
+
+        updatedTrainees[traineeId] = {
+          ...trainee,
+          heures: (trainee.heures || 0) + additionalHeures,
+          retards: (trainee.retards || 0) + additionalRetards,
+          absenceHistory: [...currentHistory, ...newAbsences]
+        };
+      }
+      return { ...prevData, trainees: updatedTrainees };
+    });
+    showAlert('Absences enregistrées avec succès', 'success');
+  };
 
   const handleSaveSettings = (newSettings) => {
     setSettings(newSettings);
@@ -413,55 +267,17 @@ export default function App() {
     showAlert('Paramètres sauvegardés', 'success');
   };
 
-  // =============================================
-  // RÉCUPÉRATION DES GROUPES
-  // =============================================
-
-  const groups = [...new Set(Object.values(data.trainees).map(t => t.group))].sort();
-
-  // =============================================
-  // GESTION DES RACCOURCIS CLAVIER
-  // =============================================
-
-  useEffect(() => {
-    const handleKeyPress = (e) => {
-      // Ctrl/Cmd + K pour rechercher
-      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-        e.preventDefault();
-        const searchInput = document.querySelector('input[placeholder*="Nom du stagiaire"]');
-        if (searchInput) searchInput.focus();
-      }
-
-      // Ctrl/Cmd + N pour ajouter
-      if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
-        e.preventDefault();
-        if (activeTab === 'students') setShowAddModal(true);
-      }
-
-      // Ctrl/Cmd + , pour paramètres
-      if ((e.ctrlKey || e.metaKey) && e.key === ',') {
-        e.preventDefault();
-        setShowSettingsModal(true);
-      }
-
-      // ESC pour fermer les modals
-      if (e.key === 'Escape') {
-        setShowAddModal(false);
-        setShowEditModal(false);
-        setShowSettingsModal(false);
-        setShowBackupModal(false);
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [activeTab]);
+  const restoreBackup = (backup) => {
+    if (backup.data) setData(backup.data);
+    if (backup.settings) setSettings(backup.settings);
+    if (backup.sanctionConfig) setSanctionConfig(backup.sanctionConfig);
+    showAlert('Restauration réussie', 'success');
+  };
 
   // =============================================
-  // RENDU
+  // RENDU PRINCIPAL
   // =============================================
 
-  // Si non authentifié, afficher la page de connexion
   if (!isAuthenticated) {
     return (
       <>
@@ -471,123 +287,113 @@ export default function App() {
     );
   }
 
-  // Si authentifié, afficher l'application complète
   return (
     <>
       <GlobalStyles />
-
       <div className="page-wrapper">
         <Header
           settings={settings}
           currentUser={currentUser}
           onSettingsClick={() => setShowSettingsModal(true)}
           onBackupClick={() => setShowBackupModal(true)}
-          onUndoClick={() => showAlert('Fonction d\'annulation à venir', 'info')}
-          onSanctionConfigClick={() => showAlert('Configuration sanctions à venir', 'info')}
-          onBulkOperationsClick={() => showAlert('Opérations groupées à venir', 'info')}
           onLogout={handleLogout}
         />
 
         <AlertContainer alerts={alerts} />
-
-        <TabsNavigation activeTab={activeTab} setActiveTab={setActiveTab} />
-
-        {activeTab === 'dashboard' && (
-          <DashboardTab
-            trainees={getFilteredTrainees()}
-            settings={settings}
-            sanctionConfig={sanctionConfig}
-            onViewStudent={(id) => {
-              showAlert('Vue détaillée à venir', 'info');
-            }}
-          />
-        )}
-
-        {activeTab === 'classes' && (
-          <ClassesTab
-            trainees={trainees}
-            groups={groups}
-            searchInput={searchInput}
-            setSearchInput={setSearchInput}
-            onViewClass={setGroupFilter}
-          
-          
-          />
-          )
-          
         
-        }
+        <TabsNavigation 
+          activeTab={activeTab} 
+          setActiveTab={setActiveTab} 
+          currentUser={currentUser} 
+        />
 
-        {activeTab === 'students' && (
-          <StudentsTab
-            trainees={getFilteredTrainees()}
-            groups={groups}
-            groupFilter={groupFilter}
-            setGroupFilter={setGroupFilter}
-            statusFilter={statusFilter}
-            setStatusFilter={setStatusFilter}
-            searchInput={searchInput}
-            setSearchInput={setSearchInput}
-            onAddClick={() => setShowAddModal(true)}
-            onEditClick={(id) => {
-              setCurrentEditId(id);
-              setShowEditModal(true);
-            }}
-            onDeleteClick={deleteTrainee}
-            onViewClick={(id) => showAlert('Vue détaillée à venir', 'info')}
-            onExport={() => exportToCSV(getFilteredTrainees(), settings, sanctionConfig)}
-            sanctionConfig={sanctionConfig}
-          />
-        )}
+        {/* CONTENU DES ONGLETS */}
+        <main className="content-container">
+          {activeTab === 'dashboard' && (
+            <DashboardTab
+              trainees={getFilteredTrainees()}
+              settings={settings}
+              sanctionConfig={sanctionConfig}
+              onViewStudent={(id) => showAlert('Vue détaillée à venir', 'info')}
+            />
+          )}
 
-        {activeTab === 'analytics' && (
-          <AnalyticsTab
-            trainees={getformatedTrainees()}
-            settings={settings}
-          />
-        )}
+          {activeTab === 'classes' && (
+            <ClassesTab
+              trainees={Object.values(data.trainees)}
+              groups={filteredGroupsForClasses}
+              searchInput={classSearchInput}
+              setSearchInput={setClassSearchInput}
+              onViewClass={handleViewClass}
+            />
+          )}
 
-        {activeTab === 'print' && (
-          <PrintTab
-            trainees={getFilteredTrainees()}
-            sanctionConfig={sanctionConfig}
-          />
-        )}
+          {activeTab === 'students' && (
+            <StudentsTab
+              trainees={getFilteredTrainees()}
+              groups={groups}
+              groupFilter={groupFilter}
+              setGroupFilter={setGroupFilter}
+              statusFilter={statusFilter}
+              setStatusFilter={setStatusFilter}
+              searchInput={searchInput}
+              setSearchInput={setSearchInput}
+              onAddClick={() => setShowAddModal(true)}
+              onEditClick={(id) => { setCurrentEditId(id); setShowEditModal(true); }}
+              onDeleteClick={deleteTrainee}
+              onExport={() => exportToCSV(getFilteredTrainees(), settings, sanctionConfig)}
+              sanctionConfig={sanctionConfig}
+              onSaveAbsences={handleSaveAbsences}
+            />
+          )}
+
+          {activeTab === 'analytics' && (
+            <AnalyticsTab trainees={getformatedTrainees()} settings={settings} />
+          )}
+
+          {activeTab === 'print' && (
+            <PrintTab trainees={getFilteredTrainees()} sanctionConfig={sanctionConfig} />
+          )}
+
+          {activeTab === 'users' && currentUser?.role === 'admin' && (
+            <UserManagement 
+              currentUser={currentUser}
+              showAlert={showAlert}
+            />
+          )}
+        </main>
 
         {/* MODALS */}
         {showAddModal && (
-          <AddTraineeModal
-            onClose={() => setShowAddModal(false)}
-            onAdd={addTrainee}
+          <AddTraineeModal 
+            onClose={() => setShowAddModal(false)} 
+            onAdd={addTrainee} 
           />
         )}
-
+        
         {showEditModal && currentEditId && (
           <EditTraineeModal
             trainee={data.trainees[currentEditId]}
-            onClose={() => {
-              setShowEditModal(false);
-              setCurrentEditId(null);
-            }}
+            onClose={() => { setShowEditModal(false); setCurrentEditId(null); }}
             onEdit={(traineeData) => editTrainee(currentEditId, traineeData)}
           />
         )}
 
         {showSettingsModal && (
-          <SettingsModal
-            settings={settings}
-            onClose={() => setShowSettingsModal(false)}
-            onSave={handleSaveSettings}
+          <SettingsModal 
+            settings={settings} 
+            onClose={() => setShowSettingsModal(false)} 
+            onSave={handleSaveSettings} 
           />
         )}
 
         {showBackupModal && (
-          <BackupModal
-            data={data}
-            settings={settings}
-            onClose={() => setShowBackupModal(false)}
-            onRestore={restoreBackup}
-            showAlert={showAlert}
+          <BackupModal 
+            data={data} 
+            settings={settings} 
+            onClose={() => setShowBackupModal(false)} 
+            onRestore={restoreBackup} 
+            showAlert={showAlert} 
           />
         )}
 
