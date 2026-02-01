@@ -150,10 +150,10 @@ def interactive_mode(excel_path, output_dir, start_date='2025-09-11'):
 
 def main():
     # --- CONFIGURE YOUR PATHS HERE ---
-    EXCEL_FILE = 'C:/Users/adams/Documents/git/absence2/python/SUIVI ABSENCE DES STAGIAIRES 2.xlsx'
+    EXCEL_FILE = 'C:/Users/pc/Desktop/sisou-repo/absence2/python/SUIVI ABSENCE DES STAGIAIRES 2.xlsx'
     
     # Change this to whatever folder you want!
-    OUTPUT_DIR = 'C:/Users/adams/Documents/git/absence2/python/jsonfiles/1er annee/' 
+    OUTPUT_DIR = 'C:/Users/pc/Desktop/sisou-repo/absence2/python/jsonfiles/1er annee/' 
     
     START_DATE = '2025-09-11'
     

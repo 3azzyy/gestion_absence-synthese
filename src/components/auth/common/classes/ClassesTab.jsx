@@ -15,9 +15,9 @@ const ClassesTab = ({
     
     // Extraire l'année d'étude du nom du groupe (ex: "DEV101" -> "1ère année")
     const getYear = (groupName) => {
-      if (groupName.includes('101') || groupName.includes('1')) return '1ère année';
-      if (groupName.includes('201') || groupName.includes('2')) return '2ème année';
-      if (groupName.includes('301') || groupName.includes('3')) return '3ème année';
+      if (groupName.includes('10') || groupName.startsWith('1')) return '1ère année';
+      if (groupName.includes('20') || groupName.startsWith('2')) return '2ème année';
+      if (groupName.includes('30') || groupName.startsWith('3')) return '3ème année';
       return 'N/A';
     };
 
