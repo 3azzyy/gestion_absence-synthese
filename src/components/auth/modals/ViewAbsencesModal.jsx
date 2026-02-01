@@ -8,10 +8,12 @@ const ViewAbsencesModal = ({ trainee, onClose }) => {
     { value: 'maladie', label: 'Maladie', color: '#0288d1' }
   ];
 
+
   // Récupérer l'historique des absences
-  const absenceHistory = trainee.data?.absenceHistory || [];
-  const retardHistory = absenceHistory.filter(a => a.isRetard);
-  const heureHistory = absenceHistory.filter(a => !a.isRetard);
+  const absenceHistory = trainee.data?.absences || [];
+  const retardHistory = absenceHistory.filter(a => a.status === 'late');
+  const heureHistory = absenceHistory.filter(a => a.status === 'absent');
+
 
   return (
     <div className="modal show">
@@ -93,7 +95,7 @@ const ViewAbsencesModal = ({ trainee, onClose }) => {
               {absenceHistory.length}
             </div>
             <div style={{ fontSize: '13px', color: '#856404', fontWeight: 600 }}>
-              Total Absences
+              Total Infraction
             </div>
           </div>
           <div style={{
@@ -107,7 +109,7 @@ const ViewAbsencesModal = ({ trainee, onClose }) => {
               {heureHistory.length}
             </div>
             <div style={{ fontSize: '13px', color: '#721c24', fontWeight: 600 }}>
-              Absences (Heures)
+              Absences 
             </div>
           </div>
           <div style={{
@@ -172,6 +174,7 @@ const ViewAbsencesModal = ({ trainee, onClose }) => {
                       <tr>
                         <th>Date</th>
                         <th>Type</th>
+                        <th>session</th>
                         <th>Heures</th>
                       </tr>
                     </thead>
@@ -183,11 +186,11 @@ const ViewAbsencesModal = ({ trainee, onClose }) => {
                             <td>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center' }}>
                                 <Calendar size={14} color="var(--text-muted)" />
-                                <strong>{new Date(abs.date).toLocaleDateString('fr-FR', { 
+                                <strong>{new Date(abs.date).toLocaleDateString('fr-FR', {
                                   weekday: 'short',
-                                  year: 'numeric', 
-                                  month: 'long', 
-                                  day: 'numeric' 
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric'
                                 })}</strong>
                               </div>
                             </td>
@@ -199,20 +202,30 @@ const ViewAbsencesModal = ({ trainee, onClose }) => {
                                 fontSize: '12px',
                                 fontWeight: 700,
                                 color: 'white',
-                                background: absenceTypes.find(t => t.value === abs.type)?.color,
+                                background: 'var(--danger)',
                                 textTransform: 'uppercase',
                                 letterSpacing: '0.5px'
                               }}>
-                                {absenceTypes.find(t => t.value === abs.type)?.label}
+                                {abs.status === 'absent' ? 'ABSENCE' : ''}
                               </span>
                             </td>
                             <td>
-                              <span style={{ 
-                                fontWeight: 700, 
+                              <span style={{
+                                fontWeight: 600,
+                                fontSize: '16px',
+                                color: 'var(--danger)'
+                              }}
+                              >
+                                {abs.session || 'N/A'}
+                              </span>
+                            </td>
+                            <td>
+                              <span style={{
+                                fontWeight: 700,
                                 fontSize: '16px',
                                 color: 'var(--danger)'
                               }}>
-                                {abs.heures} h
+                                {abs.status === 'absent' ? abs.duration * 2.5 : abs.duration} h
                               </span>
                             </td>
                           </tr>
@@ -251,6 +264,7 @@ const ViewAbsencesModal = ({ trainee, onClose }) => {
                       <tr>
                         <th>Date</th>
                         <th>Type</th>
+                        <th>Durée</th>
                         <th>Statut</th>
                       </tr>
                     </thead>
@@ -262,11 +276,11 @@ const ViewAbsencesModal = ({ trainee, onClose }) => {
                             <td>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center' }}>
                                 <Calendar size={14} color="var(--text-muted)" />
-                                <strong>{new Date(abs.date).toLocaleDateString('fr-FR', { 
+                                <strong>{new Date(abs.date).toLocaleDateString('fr-FR', {
                                   weekday: 'short',
-                                  year: 'numeric', 
-                                  month: 'long', 
-                                  day: 'numeric' 
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric'
                                 })}</strong>
                               </div>
                             </td>

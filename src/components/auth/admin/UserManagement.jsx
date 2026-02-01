@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Plus, Trash2, Shield, User, Key } from 'lucide-react';
 import AddUserModal from '../modals/AddUserModal';
+import axios from 'axios';
 import UpdatePasswordModal from '../modals/UpdatePasswordModal';
 
 const UserManagement = ({ currentUser, showAlert }) => {
@@ -11,117 +12,88 @@ const UserManagement = ({ currentUser, showAlert }) => {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
 
-  // Load users from localStorage on component mount
-  useEffect(() => {
-    const loadUsers = () => {
-      try {
-        const savedUsers = localStorage.getItem('app_users');
-        if (savedUsers) {
-          setUsers(JSON.parse(savedUsers));
-        } else {
-          // Initialize with default admin user if no users exist
-          const defaultUsers = [
-            {
-              id: 1,
-              username: 'admin',
-              role: 'admin',
-              created_at: new Date().toISOString()
-            }
-          ];
-          setUsers(defaultUsers);
-          localStorage.setItem('app_users', JSON.stringify(defaultUsers));
-        }
-      } catch (error) {
-        console.error('Error loading users:', error);
-        setUsers([]);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const getAuthToken = () => {
+    const session = JSON.parse(localStorage.getItem('ista_auth_session'));
+    return session?.token;
+  };
 
-    loadUsers();
+  // --- API CALL: Fetch Users ---
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get('/api/users', {
+        headers: { Authorization: `Bearer ${getAuthToken()}` }
+      });
+      // Assuming your API returns { success: true, data: [...] }
+      setUsers(response.data.data || response.data);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      showAlert('Erreur lors du chargement des utilisateurs', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
   }, []);
 
-  // Save users to localStorage whenever they change
-  useEffect(() => {
-    if (users.length > 0) {
-      localStorage.setItem('app_users', JSON.stringify(users));
-    }
-  }, [users]);
-
-  // Handle adding a new user
-  const handleAddUser = (formData) => {
+  // --- API CALL: Create User ---
+  const handleAddUser = async (formData) => {
     try {
-      const newId = users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 1;
-      const newUser = {
-        id: newId,
+      await axios.post('/api/register', {
         username: formData.username,
         password: formData.password,
-        role: formData.role || 'user',
-        created_at: new Date().toISOString()
-      };
+        full_name: formData.username, // Adjust based on your form fields
+        role: formData.role || 'staff'
+      }, {
+        headers: { Authorization: `Bearer ${getAuthToken()}` }
+      });
 
-      if (users.some(u => u.username.toLowerCase() === formData.username.toLowerCase())) {
-        showAlert('Ce nom d\'utilisateur existe déjà', 'error');
-        return;
-      }
-
-      setUsers(prevUsers => [...prevUsers, newUser]);
       showAlert(`Utilisateur "${formData.username}" créé avec succès`, 'success');
       setShowAddModal(false);
+      fetchUsers(); // Refresh list
     } catch (error) {
-      console.error('Error creating user:', error);
-      showAlert('Erreur lors de la création de l\'utilisateur', 'error');
+      const msg = error.response?.data?.message || 'Erreur de création';
+      showAlert(msg, 'error');
     }
   };
 
-  // Handle updating password
-  const handleUpdatePassword = (newPassword) => {
+  // --- API CALL: Update Password ---
+  const handleUpdatePassword = async (newPassword) => {
     if (!selectedUser) return;
-
     try {
-      setUsers(prevUsers => 
-        prevUsers.map(user => 
-          user.id === selectedUser.id 
-            ? { ...user, password: newPassword }
-            : user
-        )
-      );
-      showAlert(`Mot de passe de "${selectedUser.username}" modifié avec succès`, 'success');
+      await axios.put(`/api/users/${selectedUser.id}/password`, {
+        password: newPassword
+      }, {
+        headers: { Authorization: `Bearer ${getAuthToken()}` }
+      });
+
+      showAlert(`Mot de passe modifié pour ${selectedUser.username}`, 'success');
       setShowPasswordModal(false);
-      setSelectedUser(null);
+      fetchUsers();
     } catch (error) {
-      console.error('Error updating password:', error);
-      showAlert('Erreur lors de la modification du mot de passe', 'error');
+      showAlert('Erreur lors de la modification', 'error');
     }
   };
 
-  // Handle deleting a user
-  const handleDeleteUser = (userId) => {
-    const userToDelete = users.find(u => u.id === userId);
-    if (!userToDelete) return;
-
+  // --- API CALL: Delete User ---
+  const handleDeleteUser = async (userId) => {
     if (userId === currentUser?.id) {
       showAlert('Vous ne pouvez pas supprimer votre propre compte', 'error');
       return;
     }
 
-    const adminCount = users.filter(u => u.role === 'admin').length;
-    if (userToDelete.role === 'admin' && adminCount <= 1) {
-      showAlert('Vous ne pouvez pas supprimer le dernier administrateur', 'error');
-      return;
-    }
-
-    if (!window.confirm(`Êtes-vous sûr de vouloir supprimer l'utilisateur "${userToDelete.username}" ?`)) {
-      return;
-    }
+    if (!window.confirm(`Supprimer cet utilisateur ?`)) return;
 
     try {
-      setUsers(prevUsers => prevUsers.filter(u => u.id !== userId));
-      showAlert(`Utilisateur "${userToDelete.username}" supprimé avec succès`, 'success');
+      await axios.delete(`/api/users/${userId}`, {
+        headers: { Authorization: `Bearer ${getAuthToken()}` }
+      });
+      showAlert('Utilisateur supprimé', 'success');
+      fetchUsers();
     } catch (error) {
-      console.error('Error deleting user:', error);
-      showAlert('Erreur lors de la suppression de l\'utilisateur', 'error');
+      showAlert('Erreur de suppression', 'error');
     }
   };
 
@@ -179,12 +151,12 @@ const UserManagement = ({ currentUser, showAlert }) => {
                   <tr key={user.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                     <td style={{ padding: '20px 24px', color: '#64748b' }}>#{user.id}</td>
                     <td style={{ padding: '20px 24px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: '#e0f2fe', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <User size={20} color="#0284c7" />
-                            </div>
-                            <span style={{ fontWeight: '600' }}>{user.username}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: '#e0f2fe', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <User size={20} color="#0284c7" />
                         </div>
+                        <span style={{ fontWeight: '600' }}>{user.username}</span>
+                      </div>
                     </td>
                     <td style={{ padding: '20px 24px' }}>
                       <span style={{ padding: '6px 12px', borderRadius: '8px', fontSize: '12px', background: user.role === 'admin' ? '#fee2e2' : '#dbeafe', color: user.role === 'admin' ? '#991b1b' : '#1e40af' }}>
@@ -194,14 +166,14 @@ const UserManagement = ({ currentUser, showAlert }) => {
                     <td style={{ padding: '20px 24px' }}>{new Date(user.created_at).toLocaleDateString('fr-FR')}</td>
                     <td style={{ padding: '20px 24px', textAlign: 'center' }}>
                       <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                        <button 
+                        <button
                           onClick={() => openPasswordModal(user)}
-                          style={{ 
-                            padding: '8px 16px', 
-                            borderRadius: '8px', 
-                            border: '1px solid #bfdbfe', 
-                            background: '#dbeafe', 
-                            color: '#1e40af', 
+                          style={{
+                            padding: '8px 16px',
+                            borderRadius: '8px',
+                            border: '1px solid #bfdbfe',
+                            background: '#dbeafe',
+                            color: '#1e40af',
                             cursor: 'pointer',
                             display: 'flex',
                             alignItems: 'center',
@@ -214,15 +186,15 @@ const UserManagement = ({ currentUser, showAlert }) => {
                           <Key size={16} />
                           Changer le mot de passe
                         </button>
-                        <button 
-                          onClick={() => handleDeleteUser(user.id)} 
+                        <button
+                          onClick={() => handleDeleteUser(user.id)}
                           disabled={user.id === currentUser?.id}
-                          style={{ 
-                            padding: '8px 16px', 
-                            borderRadius: '8px', 
-                            border: '1px solid #fecaca', 
-                            background: '#fee2e2', 
-                            color: '#991b1b', 
+                          style={{
+                            padding: '8px 16px',
+                            borderRadius: '8px',
+                            border: '1px solid #fecaca',
+                            background: '#fee2e2',
+                            color: '#991b1b',
                             cursor: user.id === currentUser?.id ? 'not-allowed' : 'pointer',
                             opacity: user.id === currentUser?.id ? 0.5 : 1,
                             display: 'flex',
@@ -247,10 +219,10 @@ const UserManagement = ({ currentUser, showAlert }) => {
       </div>
 
       {showAddModal && (
-        <AddUserModal 
-          isOpen={showAddModal} 
-          onClose={() => setShowAddModal(false)} 
-          onSubmit={handleAddUser} 
+        <AddUserModal
+          isOpen={showAddModal}
+          onClose={() => setShowAddModal(false)}
+          onAdd={handleAddUser}
         />
       )}
 

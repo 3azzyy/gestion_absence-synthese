@@ -20,7 +20,7 @@ const AddAbsenceModal = ({ trainee, onClose, onSave }) => {
   const absenceTypes = [
     { value: 'non-justifiee', label: 'Non Justifiée', color: '#dc2626' },
     { value: 'justifiee', label: 'Justifiée', color: '#ea580c' },
-    { value: 'maladie', label: 'Maladie', color: '#0284c7' }
+    // { value: 'maladie', label: 'Maladie', color: '#0284c7' },
   ];
 
   // Séances 
@@ -111,7 +111,7 @@ const calculateAbsenceHours = (absence) => {
       heuresRetard: a.mode === 'retard' ? parseFloat(a.heuresRetard) : null
     }));
 
-    onSave(trainee.id, formattedAbsences);
+    onSave(trainee.id, { absences: formattedAbsences });
     onClose();
   };
 
@@ -230,7 +230,7 @@ const calculateAbsenceHours = (absence) => {
 
         {/* Liste des absences */}
         <div style={{ 
-          maxHeight: '500px', 
+          // maxHeight: '500px', 
           overflowY: 'auto', 
           marginBottom: '20px' 
         }}>
@@ -440,7 +440,7 @@ const calculateAbsenceHours = (absence) => {
                     padding: '16px'
                   }}>
                     <label className="form-label" style={{ marginBottom: '12px', display: 'block' }}>
-                      Séances absentes (2h par séance)
+                      Séances absentes (2.5h par séance)
                     </label>
                     <div style={{
                       display: 'grid',

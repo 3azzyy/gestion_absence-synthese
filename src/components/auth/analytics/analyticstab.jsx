@@ -22,7 +22,6 @@ const AnalyticsTab = ({ trainees, settings }) => {
     sanctionDistribution[code] = (sanctionDistribution[code] || 0) + 1;
 
     // Monthly absences (from logs)
-    console.log(t.data);
     if (t.data.logs) {
       t.data.logs.forEach(log => {
 

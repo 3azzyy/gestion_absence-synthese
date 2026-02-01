@@ -3,8 +3,7 @@ import { Eye, Edit2, Trash2, Plus } from 'lucide-react';
 
 const StudentRow = ({ trainee, onEditClick, onDeleteClick, onViewClick }) => {
   const t = trainee;
-  console.log(t);
-  
+ 
   return (
     <tr className={t.days >= 5 ? 'at-risk' : ''}>
       <td><strong>{t.name}</strong></td>

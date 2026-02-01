@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, User, Key, Shield, Plus, Eye, EyeOff } from 'lucide-react';
 
-const AddUserModal = ({ onClose, onAdd }) => {
+const AddUserModal = ({ isOpen, onClose, onAdd }) => {
   const [formData, setFormData] = useState({
     username: '',
     password: '',

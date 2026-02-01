@@ -65,6 +65,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/', [SettingsController::class, 'update']);
     });
 
+    // User Management Routes
+    Route::get('/users', [AuthController::class, 'index']); // Get all users
+    Route::delete('/users/{id}', [AuthController::class, 'destroy']); // Delete user
+    Route::put('/users/{id}/password', [AuthController::class, 'updatePassword']); // Change password
+
     // Sanctions routes
     Route::prefix('sanctions')->group(function () {
         Route::get('/config', [SanctionController::class, 'index']);

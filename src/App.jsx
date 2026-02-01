@@ -82,7 +82,7 @@ export default function App() {
 
         const apiTrainees = response.data.data.data || response.data.data || [];
         const formattedTrainees = {};
-        
+
         apiTrainees.forEach(student => {
           formattedTrainees[student.id] = {
             ...student,
@@ -127,7 +127,7 @@ export default function App() {
 
   const groups = [...new Set(Object.values(data.trainees).map(t => t.group))].sort();
 
-  const filteredGroupsForClasses = groups.filter(group => 
+  const filteredGroupsForClasses = groups.filter(group =>
     group.toLowerCase().includes(classSearchInput.toLowerCase())
   );
 
@@ -135,7 +135,7 @@ export default function App() {
     let traineesList = Object.entries(data.trainees).map(([id, t]) => {
       const days = calculateDays(t.heures, t.retards, settings);
       const sanction = sanctionLabel(days, sanctionConfig);
-      const attendance = Math.max(0, 10 + (-1 * days) + (-1 * t.retards/4));
+      const attendance = Math.max(0, 10 + (-1 * days) + (-1 * t.retards / 4));
 
       return {
         id,
@@ -235,29 +235,48 @@ export default function App() {
     showAlert('Stagiaire supprimé', 'success');
   };
 
-  const handleSaveAbsences = async (traineeId, newAbsences) => {
-    setData(prevData => {
-      const updatedTrainees = { ...prevData.trainees };
-      const trainee = updatedTrainees[traineeId];
+  const handleSaveAbsences = async (studentId, payload) => {
+    const statusMap = {
+      'justifiee': 'justified',
+      'non_justifiee': 'absent',
+      'retard': 'late',
+      'present': 'present'
+    };
 
-      if (trainee) {
-        const currentHistory = trainee.absenceHistory || [];
-        const additionalHeures = newAbsences
-          .filter(a => !a.isRetard)
-          .reduce((sum, a) => sum + parseFloat(a.heures || 0), 0);
+    // FIX: These must match your DB ENUM: S1, S2, S3, S4
+    const sessionMap = {
+      'seance1': 'S1',
+      'seance2': 'S2',
+      'seance3': 'S3',
+      'seance4': 'S4'
+    };
 
-        const additionalRetards = newAbsences.filter(a => a.isRetard).length;
+    const formattedAbsences = payload.absences.map(abs => {
+      // Identify which checkbox was checked
+      const activeSessionKey = Object.keys(abs.seances || {}).find(key => abs.seances[key] === true);
 
-        updatedTrainees[traineeId] = {
-          ...trainee,
-          heures: (trainee.heures || 0) + additionalHeures,
-          retards: (trainee.retards || 0) + additionalRetards,
-          absenceHistory: [...currentHistory, ...newAbsences]
-        };
-      }
-      return { ...prevData, trainees: updatedTrainees };
+      return {
+        date: abs.date,
+        heures: abs.heures || 0,
+        isRetard: abs.isRetard || false,
+        status: statusMap[abs.type] || 'absent',
+        // Map 'seance1' to 'S1'
+        session: sessionMap[activeSessionKey] || null,
+        reason: abs.motif || null,
+        seances: abs.seances || {}
+      };
     });
-    showAlert('Absences enregistrées avec succès', 'success');
+
+    try {
+      await api.post(`/students/${studentId}/absences`, {
+        absences: formattedAbsences
+      });
+      showAlert('Absences enregistrées !', 'success');
+      window.location.reload();
+    } catch (error) {
+      console.error("Backend Error:", error.response?.data);
+      showAlert('Erreur: ' + (error.response?.data?.message || 'Erreur Serveur'), 'error');
+    }
   };
 
   const handleSaveSettings = (newSettings) => {
@@ -300,11 +319,11 @@ export default function App() {
         />
 
         <AlertContainer alerts={alerts} />
-        
-        <TabsNavigation 
-          activeTab={activeTab} 
-          setActiveTab={setActiveTab} 
-          currentUser={currentUser} 
+
+        <TabsNavigation
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          currentUser={currentUser}
         />
 
         {/* CONTENU DES ONGLETS */}
@@ -356,7 +375,7 @@ export default function App() {
           )}
 
           {activeTab === 'users' && currentUser?.role === 'admin' && (
-            <UserManagement 
+            <UserManagement
               currentUser={currentUser}
               showAlert={showAlert}
             />
@@ -365,12 +384,12 @@ export default function App() {
 
         {/* MODALS */}
         {showAddModal && (
-          <AddTraineeModal 
-            onClose={() => setShowAddModal(false)} 
-            onAdd={addTrainee} 
+          <AddTraineeModal
+            onClose={() => setShowAddModal(false)}
+            onAdd={addTrainee}
           />
         )}
-        
+
         {showEditModal && currentEditId && (
           <EditTraineeModal
             trainee={data.trainees[currentEditId]}
@@ -380,20 +399,20 @@ export default function App() {
         )}
 
         {showSettingsModal && (
-          <SettingsModal 
-            settings={settings} 
-            onClose={() => setShowSettingsModal(false)} 
-            onSave={handleSaveSettings} 
+          <SettingsModal
+            settings={settings}
+            onClose={() => setShowSettingsModal(false)}
+            onSave={handleSaveSettings}
           />
         )}
 
         {showBackupModal && (
-          <BackupModal 
-            data={data} 
-            settings={settings} 
-            onClose={() => setShowBackupModal(false)} 
-            onRestore={restoreBackup} 
-            showAlert={showAlert} 
+          <BackupModal
+            data={data}
+            settings={settings}
+            onClose={() => setShowBackupModal(false)}
+            onRestore={restoreBackup}
+            showAlert={showAlert}
           />
         )}
 

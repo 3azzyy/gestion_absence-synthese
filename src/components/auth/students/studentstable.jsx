@@ -35,7 +35,7 @@ const StudentsTable = ({ trainees, onEditClick, onDeleteClick, onViewClick }) =>
             </td>
           </tr>
         ) : (
-          trainees.map(t => (
+          trainees.slice(0, 50).map(t => (
             <StudentRow 
               key={t.id}
               trainee={t}

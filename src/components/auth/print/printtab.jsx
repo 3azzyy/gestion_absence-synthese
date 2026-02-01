@@ -44,7 +44,7 @@ const PrintTab = ({ trainees, sanctionConfig }) => {
           <td>${t.heures.toFixed(1)}</td>
           <td>${t.retards}</td>
           <td>${t.days.toFixed(2)}</td>
-          <td>${t.attendance.toFixed(1)}%</td>
+          <td>${t.attendance.toFixed(1)}/10</td>
           <td><span style="background:${t.sanction.color};padding:4px 8px;border-radius:4px;font-size:11px;color:#fff">${t.sanction.label}</span></td>
         </tr>`;
       });

@@ -76,6 +76,37 @@ class AuthController extends Controller
         ]);
     }
 
+
+    // Get all users
+    public function index()
+    {
+        return response()->json([
+            'success' => true,
+            'data' => User::all()
+        ]);
+    }
+
+    // Delete a user
+    public function destroy($id)
+    {
+        $user = User::findOrFail($id);
+        $user->delete();
+
+        return response()->json(['success' => true, 'message' => 'User deleted']);
+    }
+
+    // Update password
+    public function updatePassword(Request $request, $id)
+    {
+        $request->validate(['password' => 'required|min:6']);
+
+        $user = User::findOrFail($id);
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        return response()->json(['success' => true, 'message' => 'Password updated']);
+    }
+
     public function user(Request $request)
     {
         return response()->json([
