@@ -33,27 +33,6 @@ const DashboardTab = ({ trainees, settings, sanctionConfig, onViewStudent }) => 
         <StatCard label="Taux Présence Moyen" value={`${avgAttendance}%`} />
       </div>
 
-      <div className="card">
-        <h2 className="card-header">Alertes et Avertissements</h2>
-        {warnings.length === 0 ? (
-          <div className="alert alert-success">✓ Aucune alerte pour le moment</div>
-        ) : (
-          warnings.map(t => (
-            <div key={t.id} className={`alert alert-${t.days >= 5 ? 'danger' : 'warning'}`}>
-              <div style={{flex: 1}}>
-                <strong>{t.name}</strong> — {t.days.toFixed(2)} jours d'absence — {t.sanction.label}
-                <br/><small>Action requise: {t.sanction.action}</small>
-              </div>
-              {onViewStudent && (
-                <button className="btn btn-sm" onClick={() => onViewStudent(t.id)}>
-                  <Eye size={14} /> Voir
-                </button>
-              )}
-            </div>
-          ))
-        )}
-      </div>
-
       <div className="grid-2">
         <div className="card">
           <h2 className="card-header">Meilleurs Stagiaires</h2>
@@ -133,6 +112,27 @@ const DashboardTab = ({ trainees, settings, sanctionConfig, onViewStudent }) => 
           )}
         </div>
       </div>
+
+      {/* <div className="card">
+        <h2 className="card-header">Alertes et Avertissements</h2>
+        {warnings.length === 0 ? (
+          <div className="alert alert-success">✓ Aucune alerte pour le moment</div>
+        ) : (
+          warnings.map(t => (
+            <div key={t.id} className={`alert alert-${t.days >= 5 ? 'danger' : 'warning'}`}>
+              <div style={{flex: 1}}>
+                <strong>{t.name}</strong> — {t.days.toFixed(2)} jours d'absence — {t.sanction.label}
+                <br/><small>Action requise: {t.sanction.action}</small>
+              </div>
+              {onViewStudent && (
+                <button className="btn btn-sm" onClick={() => onViewStudent(t.id)}>
+                  <Eye size={14} /> Voir
+                </button>
+              )}
+            </div>
+          ))
+        )}
+      </div> */}
     </>
   );
 };

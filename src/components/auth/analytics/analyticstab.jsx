@@ -22,8 +22,10 @@ const AnalyticsTab = ({ trainees, settings }) => {
     sanctionDistribution[code] = (sanctionDistribution[code] || 0) + 1;
 
     // Monthly absences (from logs)
+    console.log(t.data);
     if (t.data.logs) {
       t.data.logs.forEach(log => {
+
         if (log.type === 'absence' && log.date) {
           const month = new Date(log.date).getMonth();
           monthlyAbsences[month] += log.hours || 0;

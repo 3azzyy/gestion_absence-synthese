@@ -38,9 +38,9 @@ const FilterControls = ({
           onChange={(e) => setSearchInput(e.target.value)}
         />
       </div>
-      <button className="btn" onClick={onAddClick}>
+      {/* <button className="btn" onClick={onAddClick}>
         <Plus size={16} /> Ajouter
-      </button>
+      </button> */}
       {onExport && (
         <button className="btn btn-success" onClick={onExport}>
           <Download size={16} /> Exporter

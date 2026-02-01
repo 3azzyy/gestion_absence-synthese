@@ -11,7 +11,7 @@ class StudentController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Student::with('group')->withCount('absences');
+        $query = Student::with(['group', 'absences'])->withCount('absences');
 
         if ($request->has('group_id')) {
             $query->byGroup($request->group_id);
@@ -23,7 +23,7 @@ class StudentController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $query->paginate($request->get('per_page', 15))
+            'data' => $query->get()
         ]);
     }
 

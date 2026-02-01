@@ -10,6 +10,12 @@ const TabsNavigation = ({ activeTab, setActiveTab }) => (
       <BarChart3 size={16} style={{display: 'inline', marginRight: 4}} /> Tableau de bord
     </button>
     <button 
+      className={`tab ${activeTab === 'classes' ? 'active' : ''}`} 
+      onClick={() => setActiveTab('classes')}
+    >
+      <Users size={16} style={{display: 'inline', marginRight: 4}} /> Classes
+    </button>
+    <button 
       className={`tab ${activeTab === 'students' ? 'active' : ''}`} 
       onClick={() => setActiveTab('students')}
     >

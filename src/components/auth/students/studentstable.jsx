@@ -4,6 +4,13 @@ import EmptyState from './emptystates';
 
 const StudentsTable = ({ trainees, onEditClick, onDeleteClick, onViewClick }) => (
   <div className="table-wrapper">
+    <style> 
+      {`
+        th, td {  
+          text-align: center!important;
+        }
+      `}
+    </style>
     <table className="table">
       <thead>
         <tr>

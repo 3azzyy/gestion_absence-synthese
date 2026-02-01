@@ -65,6 +65,7 @@ export default function App() {
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showBackupModal, setShowBackupModal] = useState(false);
   const [currentEditId, setCurrentEditId] = useState(null);
+  const [trainees, setTrainees] = useState([]);
 
   // États des filtres
   const [groupFilter, setGroupFilter] = useState('');
@@ -125,8 +126,7 @@ export default function App() {
       } catch (error) {
         console.error("DB Fetch Error:", error);
         // Fallback only if database is unreachable
-        const savedData = localStorage.getItem('gestion_absences_2025');
-        if (savedData) setData(JSON.parse(savedData));
+        setData({ trainees: {} });// or keep existing data
       }
     };
 
@@ -199,7 +199,7 @@ export default function App() {
       // Update UI State
       setIsAuthenticated(false);
       setCurrentUser(null);
-
+      localStorage.removeItem('gestion_absences_2025');
       // Reset data (optional, ensures no leftover data in state)
       setData({ trainees: {} });
 
@@ -213,14 +213,14 @@ export default function App() {
 
   const saveData = useCallback((newData) => {
     setData(newData);
-    localStorage.setItem('gestion_absences_2025', JSON.stringify(newData));
+    // localStorage.setItem('gestion_absences_2025', JSON.stringify(newData));
   }, []);
 
   const restoreBackup = (backup) => {
     if (backup.data) setData(backup.data);
     if (backup.settings) setSettings(backup.settings);
     if (backup.sanctionConfig) setSanctionConfig(backup.sanctionConfig);
-    localStorage.setItem('gestion_absences_2025', JSON.stringify(backup.data));
+    // localStorage.setItem('gestion_absences_2025', JSON.stringify(backup.data));
     localStorage.setItem('gestion_absences_settings', JSON.stringify(backup.settings));
     if (backup.sanctionConfig) {
       localStorage.setItem('gestion_absences_sanctions', JSON.stringify(backup.sanctionConfig));
@@ -244,7 +244,7 @@ export default function App() {
         }
       }
     };
-    saveData(newData);
+    // saveData(newData);
     showAlert(`Stagiaire ${traineeData.name} ajouté avec succès`, 'success');
   };
 
@@ -259,7 +259,7 @@ export default function App() {
         }
       }
     };
-    saveData(newData);
+    // saveData(newData);
     showAlert('Stagiaire modifié avec succès', 'success');
     setShowEditModal(false);
     setCurrentEditId(null);
@@ -269,7 +269,7 @@ export default function App() {
     if (!window.confirm('Êtes-vous sûr de vouloir supprimer ce stagiaire ?')) return;
     const newData = { ...data };
     delete newData.trainees[id];
-    saveData(newData);
+    // saveData(newData);
     showAlert('Stagiaire supprimé', 'success');
   };
 
@@ -281,7 +281,8 @@ export default function App() {
     let trainees = Object.entries(data.trainees).map(([id, t]) => {
       const days = calculateDays(t.heures, t.retards, settings);
       const sanction = sanctionLabel(days, sanctionConfig);
-      const attendance = Math.max(0, 100 - (days / settings.totalDays * 100));
+      const attendance1 = Math.max(0, 100 - (days / settings.totalDays * 100));
+      const attendance = Math.max(0, 10 + (-1 * days) + (-1 * t.retards/4))
 
       return {
         id,
@@ -301,6 +302,29 @@ export default function App() {
     if (searchInput) trainees = trainees.filter(t =>
       t.name.toLowerCase().includes(searchInput.toLowerCase())
     );
+
+    return trainees;
+  }, [data.trainees, settings, sanctionConfig, groupFilter, statusFilter, searchInput]);
+
+  const getformatedTrainees = useCallback(() => {
+    let trainees = Object.entries(data.trainees).map(([id, t]) => {
+      const days = calculateDays(t.heures, t.retards, settings);
+      const sanction = sanctionLabel(days, sanctionConfig);
+      const attendance = Math.max(0, 100 - (days / settings.totalDays * 100));
+
+      return {
+        id,
+        name: t.name,
+        group: t.group,
+        heures: t.heures || 0,
+        retards: t.retards || 0,
+        days: days,
+        attendance: attendance,
+        sanction: sanction,
+        data: t
+      };
+    });
+
 
     return trainees;
   }, [data.trainees, settings, sanctionConfig, groupFilter, statusFilter, searchInput]);
@@ -430,7 +454,7 @@ export default function App() {
 
         {activeTab === 'analytics' && (
           <AnalyticsTab
-            trainees={getFilteredTrainees()}
+            trainees={getformatedTrainees()}
             settings={settings}
           />
         )}

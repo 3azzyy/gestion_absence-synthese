@@ -1,8 +1,9 @@
 import React from 'react';
-import { Eye, Edit2, Trash2 } from 'lucide-react';
+import { Eye, Edit2, Trash2, Plus } from 'lucide-react';
 
 const StudentRow = ({ trainee, onEditClick, onDeleteClick, onViewClick }) => {
   const t = trainee;
+  console.log(t);
   
   return (
     <tr className={t.days >= 5 ? 'at-risk' : ''}>
@@ -12,7 +13,7 @@ const StudentRow = ({ trainee, onEditClick, onDeleteClick, onViewClick }) => {
       <td>{t.retards}</td>
       <td>{t.days.toFixed(2)}</td>
       <td>
-        <div className="progress-bar">
+        {/* <div className="progress-bar">
           <div 
             className="progress-fill" 
             style={{
@@ -20,8 +21,8 @@ const StudentRow = ({ trainee, onEditClick, onDeleteClick, onViewClick }) => {
               background: t.attendance >= 80 ? 'var(--success)' : t.attendance >= 60 ? 'var(--warning)' : 'var(--danger)'
             }}
           />
-        </div>
-        {t.attendance.toFixed(1)}%
+        </div> */}
+        {t.attendance.toFixed(1)}/10
       </td>
       <td>
         <span 
@@ -31,16 +32,21 @@ const StudentRow = ({ trainee, onEditClick, onDeleteClick, onViewClick }) => {
           {t.sanction.label}
         </span>
       </td>
-      <td>
+      <td style={{ 
+        display:"flex",
+        gap:"5px",
+        justifyContent:"center",
+       }}>
+        <button className="btn btn-sm btn-secondary" onClick={() => onEditClick(t.id)} style={{marginLeft: 4}}>
+          <Plus size={14} /> Ajouter Absence
+        </button>
+        <span></span>
         <button className="btn btn-sm" onClick={() => onViewClick(t.id)}>
           <Eye size={14} />
         </button>
-        <button className="btn btn-sm btn-secondary" onClick={() => onEditClick(t.id)} style={{marginLeft: 4}}>
-          <Edit2 size={14} />
-        </button>
-        <button className="btn btn-sm btn-danger" onClick={() => onDeleteClick(t.id)} style={{marginLeft: 4}}>
+        {/* <button className="btn btn-sm btn-danger" onClick={() => onDeleteClick(t.id)} style={{marginLeft: 4}}>
           <Trash2 size={14} />
-        </button>
+        </button> */}
       </td>
     </tr>
   );

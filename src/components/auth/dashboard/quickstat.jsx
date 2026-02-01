@@ -1,6 +1,6 @@
 import React from 'react';
 
-const QuickStats = ({ trainees, onClick }) => {
+const QuickStats = ({ trainees}) => {
   const total = trainees.length;
   const atRisk = trainees.filter(t => t.days >= 5).length;
   const warnings = trainees.filter(t => t.days >= 2 && t.days < 5).length;
@@ -16,17 +16,17 @@ const QuickStats = ({ trainees, onClick }) => {
       background: 'rgba(58,124,165,0.05)',
       borderRadius: 'var(--radius)'
     }}>
-      <QuickStatItem label="Total" value={total} color="var(--primary)" onClick={() => onClick('')} />
-      <QuickStatItem label="Normal" value={normal} color="var(--success)" onClick={() => onClick('Normal')} />
-      <QuickStatItem label="Avertis" value={warnings} color="var(--warning)" onClick={() => onClick('D')} />
-      <QuickStatItem label="À risque" value={atRisk} color="var(--danger)" onClick={() => onClick('CD')} />
+      <QuickStatItem label="Total" value={total} color="var(--primary)" />
+      <QuickStatItem label="Normal" value={normal} color="var(--success)" />
+      <QuickStatItem label="Avertis" value={warnings} color="var(--warning)" />
+      <QuickStatItem label="À risque" value={atRisk} color="var(--danger)" />
     </div>
   );
 };
 
 const QuickStatItem = ({ label, value, color, onClick }) => (
   <div 
-    onClick={onClick}
+    
     style={{
       textAlign: 'center',
       padding: 12,
