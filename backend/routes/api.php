@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\AbsenceController;
 use App\Http\Controllers\Api\GroupController;
 use App\Http\Controllers\Api\SettingsController;
 use App\Http\Controllers\Api\SanctionController;
+use App\Http\Controllers\Api\AttendanceJsonImportController;
 
 /*
 |--------------------------------------------------------------------------
@@ -70,3 +71,51 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/config', [SanctionController::class, 'update']);
     });
 });
+
+
+Route::prefix('attendance/json')->middleware('auth:sanctum')->group(function () {
+    
+    // Preview import (check what will be imported without saving)
+    Route::post('/preview', [AttendanceJsonImportController::class, 'preview'])
+        ->name('attendance.json.preview');
+    
+    // Import a single class from JSON file
+    Route::post('/import', [AttendanceJsonImportController::class, 'import'])
+        ->name('attendance.json.import');
+    
+    // Import all classes from storage directory
+    Route::post('/import-all', [AttendanceJsonImportController::class, 'importAll'])
+        ->name('attendance.json.import-all');
+});
+
+
+/*
+|--------------------------------------------------------------------------
+| Usage Examples with cURL
+|--------------------------------------------------------------------------
+|
+| Note: Replace YOUR_TOKEN with your actual Sanctum auth token
+|
+| 1. Preview import (check before importing):
+| 
+| curl -X POST http://localhost:8000/api/attendance/json/preview \
+|   -H "Authorization: Bearer YOUR_TOKEN" \
+|   -F "class_json=@/path/to/DEVOWFS201.json"
+|
+|
+| 2. Import a single class:
+|
+| curl -X POST http://localhost:8000/api/attendance/json/import \
+|   -H "Authorization: Bearer YOUR_TOKEN" \
+|   -F "class_json=@/path/to/DEVOWFS201.json" \
+|   -F "skip_empty=true"
+|
+|
+| 3. Import all classes:
+|    (First, place all JSON files in storage/app/attendance_json/)
+|
+| curl -X POST http://localhost:8000/api/attendance/json/import-all \
+|   -H "Authorization: Bearer YOUR_TOKEN"
+|
+|--------------------------------------------------------------------------
+*/
