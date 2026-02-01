@@ -16,6 +16,7 @@ import AddTraineeModal from './components/auth/modals/addtraineemodal.jsx';
 import EditTraineeModal from './components/auth/modals/edittraineemodal.jsx';
 import SettingsModal from './components/auth/modals/settingsmodal.jsx';
 import BackupModal from './components/auth/modals/backupmodal.jsx';
+import axios from 'axios';
 
 // Utilitaires
 import { DEFAULT_SANCTION_CONFIG } from './components/utils/constants';
@@ -23,7 +24,7 @@ import { calculateDays, sanctionLabel, exportToCSV } from './components/utils/ca
 import { initDefaultUsers, getSession, authenticateUser, clearSession } from './components/utils/storage';
 
 
-
+axios.defaults.baseURL = 'http://127.0.0.1:8000';
 
 
 // =============================================
@@ -31,6 +32,17 @@ import { initDefaultUsers, getSession, authenticateUser, clearSession } from './
 // =============================================
 
 export default function App() {
+
+
+  const api = axios.create({
+    baseURL: 'http://127.0.0.1:8000/api', // Point to your Laravel server
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    }
+  });
+
+
   // États d'authentification
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
@@ -63,23 +75,76 @@ export default function App() {
   // INITIALISATION
   // =============================================
 
-  useEffect(() => {
-    // Initialiser les utilisateurs par défaut
-    initDefaultUsers();
+  // useEffect(() => {
+  //   // Initialiser les utilisateurs par défaut
+  //   initDefaultUsers();
 
-    // Vérifier la session existante
+  //   // Vérifier la session existante
+  //   const session = getSession();
+  //   if (session) {
+  //     setCurrentUser(session);
+  //     setIsAuthenticated(true);
+  //   }
+
+  //   // Charger les données sauvegardées
+  //   const savedData = localStorage.getItem('gestion_absences_2025');
+  //   const savedSettings = localStorage.getItem('gestion_absences_settings');
+  //   const savedSanctions = localStorage.getItem('gestion_absences_sanctions');
+
+  //   if (savedData) setData(JSON.parse(savedData));
+  //   if (savedSettings) setSettings(JSON.parse(savedSettings));
+  //   if (savedSanctions) setSanctionConfig(JSON.parse(savedSanctions));
+  // }, []);
+
+  useEffect(() => {
     const session = getSession();
-    if (session) {
+
+    // 1. Define the fetch function inside or outside, but let it accept a token
+    const fetchTraineesFromDB = async (token) => {
+      try {
+        const response = await api.get('/students', {
+          // Pass header explicitly to avoid race conditions on the first load
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
+
+        // Extract from Laravel pagination: data (axios) -> data (laravel json) -> data (paginator)
+        const apiTrainees = response.data.data.data || response.data.data || [];
+
+        const formattedTrainees = {};
+        apiTrainees.forEach(student => {
+          formattedTrainees[student.id] = {
+            ...student,
+            name: student.full_name,
+            heures: student.hours,
+            retards: student.tardies,
+            group: student.group?.name || student.class_group || 'Sans Groupe'
+          };
+        });
+
+        setData({ trainees: formattedTrainees });
+      } catch (error) {
+        console.error("DB Fetch Error:", error);
+        // Fallback only if database is unreachable
+        const savedData = localStorage.getItem('gestion_absences_2025');
+        if (savedData) setData(JSON.parse(savedData));
+      }
+    };
+
+    // 2. Logic execution
+    if (session && session.token) {
+      // Set global default for ALL future clicks/actions
+      api.defaults.headers.common['Authorization'] = `Bearer ${session.token}`;
+
       setCurrentUser(session);
       setIsAuthenticated(true);
+
+      // Execute fetch with the known token
+      fetchTraineesFromDB(session.token);
     }
 
-    // Charger les données sauvegardées
-    const savedData = localStorage.getItem('gestion_absences_2025');
+    // Settings & Sanctions
     const savedSettings = localStorage.getItem('gestion_absences_settings');
     const savedSanctions = localStorage.getItem('gestion_absences_sanctions');
-
-    if (savedData) setData(JSON.parse(savedData));
     if (savedSettings) setSettings(JSON.parse(savedSettings));
     if (savedSanctions) setSanctionConfig(JSON.parse(savedSanctions));
   }, []);
@@ -100,23 +165,44 @@ export default function App() {
   // AUTHENTIFICATION
   // =============================================
 
-  const handleLogin = (username, password) => {
-    const result = authenticateUser(username, password);
-    
+  const handleLogin = async (username, password) => {
+    const result = await authenticateUser(username, password);
+
+    console.log('Résultat de authenticateUser :', result);
+
     if (result.success) {
       setCurrentUser(result.session);
       setIsAuthenticated(true);
       return { success: true };
     }
-    
+
     return { success: false };
   };
 
-  const handleLogout = () => {
+  // const handleLogout = () => {
+  //   if (window.confirm('Voulez-vous vraiment vous déconnecter ?')) {
+  //     clearSession();
+  //     setIsAuthenticated(false);
+  //     setCurrentUser(null);
+  //     showAlert('Déconnexion réussie', 'success');
+  //   }
+  // };
+
+
+
+
+  const handleLogout = async () => {
     if (window.confirm('Voulez-vous vraiment vous déconnecter ?')) {
-      clearSession();
+      // Wait for the server to invalidate the token
+      await clearSession();
+
+      // Update UI State
       setIsAuthenticated(false);
       setCurrentUser(null);
+
+      // Reset data (optional, ensures no leftover data in state)
+      setData({ trainees: {} });
+
       showAlert('Déconnexion réussie', 'success');
     }
   };
@@ -196,7 +282,7 @@ export default function App() {
       const days = calculateDays(t.heures, t.retards, settings);
       const sanction = sanctionLabel(days, sanctionConfig);
       const attendance = Math.max(0, 100 - (days / settings.totalDays * 100));
-      
+
       return {
         id,
         name: t.name,
@@ -212,7 +298,7 @@ export default function App() {
 
     if (groupFilter) trainees = trainees.filter(t => t.group === groupFilter);
     if (statusFilter) trainees = trainees.filter(t => t.sanction.code === statusFilter);
-    if (searchInput) trainees = trainees.filter(t => 
+    if (searchInput) trainees = trainees.filter(t =>
       t.name.toLowerCase().includes(searchInput.toLowerCase())
     );
 
@@ -248,7 +334,7 @@ export default function App() {
         const searchInput = document.querySelector('input[placeholder*="Nom du stagiaire"]');
         if (searchInput) searchInput.focus();
       }
-      
+
       // Ctrl/Cmd + N pour ajouter
       if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
         e.preventDefault();
@@ -292,9 +378,9 @@ export default function App() {
   return (
     <>
       <GlobalStyles />
-      
+
       <div className="page-wrapper">
-        <Header 
+        <Header
           settings={settings}
           currentUser={currentUser}
           onSettingsClick={() => setShowSettingsModal(true)}
@@ -310,8 +396,8 @@ export default function App() {
         <TabsNavigation activeTab={activeTab} setActiveTab={setActiveTab} />
 
         {activeTab === 'dashboard' && (
-          <DashboardTab 
-            trainees={getFilteredTrainees()} 
+          <DashboardTab
+            trainees={getFilteredTrainees()}
             settings={settings}
             sanctionConfig={sanctionConfig}
             onViewStudent={(id) => {
@@ -343,15 +429,15 @@ export default function App() {
         )}
 
         {activeTab === 'analytics' && (
-          <AnalyticsTab 
+          <AnalyticsTab
             trainees={getFilteredTrainees()}
             settings={settings}
           />
         )}
 
         {activeTab === 'print' && (
-          <PrintTab 
-            trainees={getFilteredTrainees()} 
+          <PrintTab
+            trainees={getFilteredTrainees()}
             sanctionConfig={sanctionConfig}
           />
         )}

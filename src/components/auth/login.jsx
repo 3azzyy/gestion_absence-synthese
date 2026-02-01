@@ -12,9 +12,10 @@ const LoginPage = ({ onLogin }) => {
     setIsSubmitting(true);
     
     // Simuler un délai pour l'effet de chargement
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // await new Promise(resolve => setTimeout(resolve, 500));
     
-    const result = onLogin(username.trim(), password);
+    const result = await onLogin(username, password);
+    console.log('Résultat de la tentative de connexion :', result);
     
     if (result.success) {
       setAlert({ type: 'success', message: '✓ Connexion réussie ! Redirection en cours...' });

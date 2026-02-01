@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace App\Http\Controllers\Api;
 
@@ -8,8 +8,10 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 
-class AuthController extends Controller {
-    public function login(Request $request) {
+class AuthController extends Controller
+{
+    public function login(Request $request)
+    {
         $credentials = $request->validate([
             'username' => 'required',
             'password' => 'required',
@@ -35,7 +37,8 @@ class AuthController extends Controller {
         ]);
     }
 
-    public function register(Request $request) {
+    public function register(Request $request)
+    {
         $validated = $request->validate([
             'username' => 'required|unique:users',
             'password' => 'required|min:6',
@@ -62,7 +65,19 @@ class AuthController extends Controller {
         ], 201);
     }
 
-    public function user(Request $request) {
+    public function logout(Request $request)
+    {
+        // Revoke the token that was used to authenticate the current request
+        $request->user()->currentAccessToken()->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Logged out successfully'
+        ]);
+    }
+
+    public function user(Request $request)
+    {
         return response()->json([
             'success' => true,
             'data' => $request->user()
