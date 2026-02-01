@@ -373,6 +373,49 @@ const GlobalStyles = () => (
     }
 
     .hidden { display: none !important; }
+
+    @media print {
+  @page {
+    margin: 0;
+    size: auto;
+  }
+  
+  body {
+    margin: 0;
+    padding: 0;
+  }
+  
+  body * {
+    visibility: hidden;
+  }
+  
+  .print-content, .print-content * {
+    visibility: visible;
+  }
+  
+  .print-content {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .page-header,
+  .header-top,
+  .tabs,
+  .controls-section,
+  .controls-grid,
+  .form-group,
+  .btn,
+  button,
+  .card-header,
+  .alert,
+  .card p {
+    display: none !important;
+  }
+} 
   `}</style>
 );
 

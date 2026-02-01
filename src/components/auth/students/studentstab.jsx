@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import QuickStats from '../dashboard/quickstat';
 import FilterControls from './filtercontrols';
 import StudentsTable from './studentstable';
+import AddAbsenceModal from '../modals/AddAbsenceModal';
+import ViewAbsencesModal from '../modals/ViewAbsencesModal';
 
 const StudentsTab = ({ 
   trainees, 
@@ -17,9 +19,28 @@ const StudentsTab = ({
   onDeleteClick,
   onViewClick,
   onExport,
-  sanctionConfig
+  sanctionConfig,
+  onSaveAbsences  // Nouvelle prop
 }) => {
+  const [showAbsenceModal, setShowAbsenceModal] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [selectedTrainee, setSelectedTrainee] = useState(null);
+
   const uniqueCodes = [...new Set(sanctionConfig.map(s => s.code))];
+
+  // Ouvrir le modal d'ajout d'absence
+  const handleAddAbsence = (traineeId) => {
+    const trainee = trainees.find(t => t.id === traineeId);
+    setSelectedTrainee(trainee);
+    setShowAbsenceModal(true);
+  };
+
+  // Ouvrir le modal de visualisation
+  const handleViewAbsences = (traineeId) => {
+    const trainee = trainees.find(t => t.id === traineeId);
+    setSelectedTrainee(trainee);
+    setShowViewModal(true);
+  };
 
   return (
     <>
@@ -50,11 +71,28 @@ const StudentsTab = ({
         </h2>
         <StudentsTable 
           trainees={trainees}
-          onEditClick={onEditClick}
+          onEditClick={handleAddAbsence}
           onDeleteClick={onDeleteClick}
-          onViewClick={onViewClick}
+          onViewClick={handleViewAbsences}
         />
       </div>
+
+      {/* Modal d'ajout d'absences */}
+      {showAbsenceModal && selectedTrainee && (
+        <AddAbsenceModal
+          trainee={selectedTrainee}
+          onClose={() => setShowAbsenceModal(false)}
+          onSave={onSaveAbsences}
+        />
+      )}
+
+      {/* Modal de visualisation des absences */}
+      {showViewModal && selectedTrainee && (
+        <ViewAbsencesModal
+          trainee={selectedTrainee}
+          onClose={() => setShowViewModal(false)}
+        />
+      )}
     </>
   );
 };

@@ -26,14 +26,7 @@ const PrintTab = ({ trainees, sanctionConfig }) => {
       return;
     }
 
-    let html = `
-      <div style="background:white;padding:40px;">
-        <div style="text-align:center;margin-bottom:30px;border-bottom:3px solid #000;padding-bottom:20px;">
-          <h1 style="font-size:24px;font-weight:700;margin:0 0 10px 0;">Liste des Stagiaires - ${printLevel === 'all' ? 'Tous' : printLevel}</h1>
-          <p style="font-size:16px;color:#666;">Année académique 2025 • Généré le ${new Date().toLocaleDateString('fr-FR')}</p>
-          <p style="font-size:16px;color:#666;">Total: ${filtered.length} stagiaire(s)</p>
-        </div>
-    `;
+    let html = `<div style="background:white;padding:20px;">`;
 
     if (printFormat === 'simple') {
       html += `<table class="table"><thead><tr><th>N°</th><th>Nom complet</th><th>Groupe</th><th>Jours</th><th>Sanction</th></tr></thead><tbody>`;
@@ -102,7 +95,7 @@ const PrintTab = ({ trainees, sanctionConfig }) => {
         </button>
       </div>
 
-      <div dangerouslySetInnerHTML={{ __html: preview }} />
+      <div className="print-content" dangerouslySetInnerHTML={{ __html: preview }} />
     </div>
   );
 };

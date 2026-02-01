@@ -1,7 +1,7 @@
 import React from 'react';
-import { BarChart3, Users, Printer } from 'lucide-react';
+import { BarChart3, Users, Printer, Shield } from 'lucide-react';
 
-const TabsNavigation = ({ activeTab, setActiveTab }) => (
+const TabsNavigation = ({ activeTab, setActiveTab, currentUser }) => (
   <div className="tabs">
     <button 
       className={`tab ${activeTab === 'dashboard' ? 'active' : ''}`} 
@@ -33,6 +33,16 @@ const TabsNavigation = ({ activeTab, setActiveTab }) => (
     >
       <Printer size={16} style={{display: 'inline', marginRight: 4}} /> Impressions
     </button>
+    
+    {/* Onglet Utilisateurs - Seulement pour les admins */}
+    {currentUser?.role === 'admin' && (
+      <button 
+        className={`tab ${activeTab === 'users' ? 'active' : ''}`} 
+        onClick={() => setActiveTab('users')}
+      >
+        <Shield size={16} style={{display: 'inline', marginRight: 4}} /> Utilisateurs
+      </button>
+    )}
   </div>
 );
 
