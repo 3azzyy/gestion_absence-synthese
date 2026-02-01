@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 
 // Composants
-// Composants
+
 import GlobalStyles from './components/auth/common/globalstyle.jsx';
 import AlertContainer from './components/auth/common/alertcontainer.jsx';
 import LoginPage from './components/auth/login.jsx';
@@ -17,11 +17,84 @@ import EditTraineeModal from './components/auth/modals/edittraineemodal.jsx';
 import SettingsModal from './components/auth/modals/settingsmodal.jsx';
 import BackupModal from './components/auth/modals/backupmodal.jsx';
 import axios from 'axios';
+// import ClassesTab from './components/classes/ClassesTab';
+//classes
+
+
+// const App = () => {
+//   const [activeTab, setActiveTab] = useState('dashboard');
+//   const [trainees, setTrainees] = useState([]);
+//   const [groups, setGroups] = useState([]);
+  
+//   // États pour les filtres de l'onglet Stagiaires
+//   const [groupFilter, setGroupFilter] = useState('');
+//   const [statusFilter, setStatusFilter] = useState('');
+//   const [searchInput, setSearchInput] = useState('');
+  
+//   // États pour les filtres de l'onglet Classes
+//   const [classSearchInput, setClassSearchInput] = useState('');
+
+//   // Fonction pour naviguer vers l'onglet Stagiaires avec un filtre de groupe
+//   const handleViewClass = (className) => {
+//     setGroupFilter(className); // Appliquer le filtre de groupe
+//     setSearchInput(''); // Réinitialiser la recherche
+//     setStatusFilter(''); // Réinitialiser le filtre de statut
+//     setActiveTab('students'); // Basculer vers l'onglet Stagiaires
+//   };
+
+//   // Filtrer les classes pour la recherche
+//   const filteredGroups = groups.filter(group => 
+//     group.toLowerCase().includes(classSearchInput.toLowerCase())
+//   );
+
+//   // Filtrer les stagiaires selon les filtres actifs
+//   const filteredTrainees = trainees.filter(t => {
+//     const matchesGroup = !groupFilter || t.group === groupFilter;
+//     const matchesStatus = !statusFilter || t.sanction?.code === statusFilter;
+//     const matchesSearch = !searchInput || 
+//       t.name.toLowerCase().includes(searchInput.toLowerCase());
+    
+//     return matchesGroup && matchesStatus && matchesSearch;
+//   });
+
+//   return (
+//     <>
+//       {/* Vos autres composants */}
+      
+//       {activeTab === 'classes' && (
+//         <ClassesTab 
+//           trainees={trainees}
+//           groups={filteredGroups}
+//           searchInput={classSearchInput}
+//           setSearchInput={setClassSearchInput}
+//           onViewClass={handleViewClass}
+//         />
+//       )}
+
+//       {activeTab === 'students' && (
+//         <StudentsTab 
+//           trainees={filteredTrainees}
+//           groups={groups}
+//           groupFilter={groupFilter}
+//           setGroupFilter={setGroupFilter}
+//           statusFilter={statusFilter}
+//           setStatusFilter={setStatusFilter}
+//           searchInput={searchInput}
+//           setSearchInput={setSearchInput}
+//           // ... autres props
+//         />
+//       )}
+      
+
+//     </>
+//   );
+// };
 
 // Utilitaires
 import { DEFAULT_SANCTION_CONFIG } from './components/utils/constants';
 import { calculateDays, sanctionLabel, exportToCSV } from './components/utils/calculation';
 import { initDefaultUsers, getSession, authenticateUser, clearSession } from './components/utils/storage';
+import ClassesTab from './components/auth/common/classes/ClassesTab.jsx';
 
 
 axios.defaults.baseURL = 'http://127.0.0.1:8000';
@@ -35,7 +108,7 @@ export default function App() {
 
 
   const api = axios.create({
-    baseURL: 'http://127.0.0.1:8000/api', // Point to your Laravel server
+    baseURL: 'http://127.0.0.1:8000/api',
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json'
@@ -429,6 +502,21 @@ export default function App() {
             }}
           />
         )}
+
+        {activeTab === 'classes' && (
+          <ClassesTab
+            trainees={trainees}
+            groups={groups}
+            searchInput={searchInput}
+            setSearchInput={setSearchInput}
+            onViewClass={setGroupFilter}
+          
+          
+          />
+          )
+          
+        
+        }
 
         {activeTab === 'students' && (
           <StudentsTab
