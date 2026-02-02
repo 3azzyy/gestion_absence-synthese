@@ -8,7 +8,7 @@ import MultiJsonAttendanceImporter from './importclasses/jsonabsenceimport.jsx'
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <App />
-    {/* <AllStorage />
-    <MultiJsonAttendanceImporter /> */}
+    <AllStorage />
+    <MultiJsonAttendanceImporter />
   </StrictMode>,
 )

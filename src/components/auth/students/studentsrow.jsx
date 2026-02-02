@@ -26,7 +26,7 @@ const StudentRow = ({ trainee, onEditClick, onDeleteClick, onViewClick }) => {
       <td>
         <span 
           className="status-badge" 
-          style={{background: t.sanction.color, minWidth: 'auto', padding: '4px 8px'}}
+          style={{background: t.sanction.color, minWidth: 'auto', padding: '4px 8px', color: t.sanction.color == "#2e7d32" ? '#ffffff' : '#af4646'}}
         >
           {t.sanction.label}
         </span>

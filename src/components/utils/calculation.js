@@ -30,7 +30,7 @@ export const exportToCSV = (trainees, settings, sanctionConfig) => {
     t.heures.toFixed(1),
     t.retards,
     t.days.toFixed(2),
-    t.attendance.toFixed(1) + '%',
+    t.attendance.toFixed(1) + '/10',
     t.sanction.label,
     t.sanction.action
   ]);

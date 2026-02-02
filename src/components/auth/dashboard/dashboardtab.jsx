@@ -30,7 +30,7 @@ const DashboardTab = ({ trainees, settings, sanctionConfig, onViewStudent }) => 
         <StatCard label="À Risque" value={atRisk} />
         <StatCard label="Total Heures" value={totalHours.toFixed(1)} />
         <StatCard label="Total Jours" value={totalDays.toFixed(1)} />
-        <StatCard label="Taux Présence Moyen" value={`${avgAttendance}%`} />
+        <StatCard label="Taux Absence Moyen" value={`${avgAttendance} h/stg`} />
       </div>
 
       <div className="grid-2">
@@ -66,7 +66,7 @@ const DashboardTab = ({ trainees, settings, sanctionConfig, onViewStudent }) => 
                   </div>
                 </div>
                 <div style={{fontSize: 18, fontWeight: 700, color: 'var(--success)'}}>
-                  {t.attendance.toFixed(1)}%
+                  {t.attendance.toFixed(1)}/10
                 </div>
               </div>
             ))
@@ -105,7 +105,7 @@ const DashboardTab = ({ trainees, settings, sanctionConfig, onViewStudent }) => 
                   </div>
                 </div>
                 <div style={{fontSize: 18, fontWeight: 700, color: 'var(--danger)'}}>
-                  {t.attendance.toFixed(1)}%
+                  {t.attendance.toFixed(1)}/10
                 </div>
               </div>
             ))
