@@ -316,6 +316,20 @@ export default function App() {
           onSettingsClick={() => setShowSettingsModal(true)}
           onBackupClick={() => setShowBackupModal(true)}
           onLogout={handleLogout}
+          trainees={getFilteredTrainees()}
+          groups={groups}
+          groupFilter={groupFilter}
+          setGroupFilter={setGroupFilter}
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
+          searchInput={searchInput}
+          setSearchInput={setSearchInput}
+          onAddClick={() => setShowAddModal(true)}
+          onEditClick={(id) => { setCurrentEditId(id); setShowEditModal(true); }}
+          onDeleteClick={deleteTrainee}
+          onExport={() => exportToCSV(getFilteredTrainees(), settings, sanctionConfig)}
+          sanctionConfig={sanctionConfig}
+          onSaveAbsences={handleSaveAbsences}
         />
 
         <AlertContainer alerts={alerts} />

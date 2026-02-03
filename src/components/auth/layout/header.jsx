@@ -1,19 +1,37 @@
 import React from 'react';
 import { Settings, Scale, Save, Undo, Zap, LogOut, Users } from 'lucide-react';
+import FilterControls from '../students/filtercontrols';
 
-const Header = ({ 
-  settings, 
-  currentUser, 
-  onSettingsClick, 
-  onBackupClick, 
-  onUndoClick, 
-  onSanctionConfigClick, 
-  onBulkOperationsClick, 
-  onLogout 
+const Header = ({
+  settings,
+  currentUser,
+  onSettingsClick,
+  onBackupClick,
+  onUndoClick,
+  onSanctionConfigClick,
+  onBulkOperationsClick,
+  onLogout,
+  trainees,
+  groups,
+  groupFilter,
+  setGroupFilter,
+  statusFilter,
+  setStatusFilter,
+  searchInput,
+  setSearchInput,
+  onAddClick,
+  onEditClick,
+  onDeleteClick,
+  onViewClick,
+  onExport,
+  sanctionConfig,
+  onSaveAbsences
 }) => {
   // Safe extraction of display names to prevent "Cannot read properties of null" errors
   const displayName = currentUser?.fullName || currentUser?.name || currentUser?.username || 'Utilisateur';
   const displayRole = currentUser?.role ? ` (${currentUser.role})` : '';
+
+  const uniqueCodes = [...new Set(sanctionConfig.map(s => s.code))];
 
   return (
     <div className="page-header">
@@ -59,10 +77,10 @@ const Header = ({
               <Undo size={18} />
             </button>
 
-            <button 
-              className="icon-btn" 
-              onClick={onLogout} 
-              title="Déconnexion" 
+            <button
+              className="icon-btn"
+              onClick={onLogout}
+              title="Déconnexion"
               style={{ background: '#dc3545', color: 'white', borderColor: '#dc3545' }}
             >
               <LogOut size={18} />
@@ -70,6 +88,19 @@ const Header = ({
           </div>
         </div>
       </div>
+    
+      <FilterControls
+        groups={groups}
+        uniqueCodes={uniqueCodes}
+        groupFilter={groupFilter}
+        setGroupFilter={setGroupFilter}
+        statusFilter={statusFilter}
+        setStatusFilter={setStatusFilter}
+        searchInput={searchInput}
+        setSearchInput={setSearchInput}
+        onAddClick={onAddClick}
+        onExport={onExport}
+      />
     </div>
   );
 };

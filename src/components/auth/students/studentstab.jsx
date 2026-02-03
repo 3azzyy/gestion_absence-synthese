@@ -49,7 +49,7 @@ const StudentsTab = ({
         onClick={(filter) => setStatusFilter(filter)}
       />
       
-      <FilterControls
+      {/* <FilterControls
         groups={groups}
         uniqueCodes={uniqueCodes}
         groupFilter={groupFilter}
@@ -60,7 +60,7 @@ const StudentsTab = ({
         setSearchInput={setSearchInput}
         onAddClick={onAddClick}
         onExport={onExport}
-      />
+      /> */}
 
       <div className="card">
         <h2 className="card-header">

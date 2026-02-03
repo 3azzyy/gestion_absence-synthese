@@ -44,9 +44,16 @@ const GlobalStyles = () => (
       padding: 32px 24px;
       margin: -32px -24px 32px -24px;
       box-shadow: var(--shadow);
+
     }
 
-    .header-top { display: flex; justify-content: space-between; align-items: start; gap: 16px; flex-wrap: wrap; }
+    .header-top { display: flex;
+     justify-content: space-between;
+      align-items: start; 
+      gap: 16px; 
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+      }
 
     .header-title {
       font-family: Georgia, serif;
