@@ -1,53 +1,67 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import ClassesTable from './ClassesTable';
 import ClassFilterControls from './ClassFilterControls';
+import axios from 'axios';
+import api from '../../../../services/api';
 
-const ClassesTab = ({ 
-  trainees, 
-  groups,
-  searchInput,
-  setSearchInput,
-  onViewClass
-}) => {
-  // Calculer les statistiques par groupe
-  const classesData = groups.map(group => {
-    const groupTrainees = trainees.filter(t => t.group === group);
-    
-    // Extraire l'année d'étude du nom du groupe (ex: "DEV101" -> "1ère année")
-    const getYear = (groupName) => {
-      if (groupName.includes('10') || groupName.startsWith('1')) return '1ère année';
-      if (groupName.includes('20') || groupName.startsWith('2')) return '2ème année';
-      if (groupName.includes('30') || groupName.startsWith('3')) return '3ème année';
-      return 'N/A';
+const ClassesTab = () => {
+  const [searchInput, setSearchInput] = useState('');
+  const [Groups, setGroups] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+    const loadGroups = async () => {
+      setLoading(true);
+      const data = await fetchGroups(searchInput);
+      setGroups(data);
+      setLoading(false);
     };
 
-    return {
-      id: group,
-      className: group,
-      year: getYear(group),
-      studentCount: groupTrainees.length,
-      trainees: groupTrainees
-    };
-  });
+    loadGroups();
+  }, 500); 
+  
+  return () => clearTimeout(delayDebounceFn);
+  }, [searchInput]);
+
+const fetchGroups = async (search) => {
+    try {
+      // Laravel expects query params in 'params' for GET requests
+      const response = await api.get('/groups', {
+        params: { search: searchInput || '' } 
+      });
+
+      // Based on your api.js handleResponse logic:
+      return response.data.data;
+    } catch (error) {
+      console.error('Erreur lors de la récupération des groupes :', error);
+      return [];
+    }
+  };
 
   return (
     <>
 
-    <ClassFilterControls
+      <ClassFilterControls
         searchInput={searchInput}
         setSearchInput={setSearchInput}
       />
       <div className="card" style={{ marginBottom: 24 }}>
         <h2 className="card-header">
           Gestion des Classes
-          <span style={{fontSize: 14, fontWeight: 400, color: 'var(--text-secondary)'}}>
-            ({classesData.length} classe{classesData.length > 1 ? 's' : ''})
+          <span style={{ fontSize: 14, fontWeight: 400, color: 'var(--text-secondary)' }}>
+            ({Groups.length} classe{Groups.length > 1 ? 's' : ''})
           </span>
         </h2>
-        <ClassesTable 
-          classes={classesData}
-          onViewClass={onViewClass}
-        />
+
+
+        {loading ? (
+          <div className="p-4 text-center">Chargement...</div>
+        ) : (
+          <ClassesTable
+            classes={Groups} // Ensure your ClassesTable uses this prop correctly
+          />
+        )}
       </div>
     </>
   );

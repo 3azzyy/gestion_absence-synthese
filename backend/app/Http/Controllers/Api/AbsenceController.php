@@ -56,8 +56,6 @@ class AbsenceController extends Controller
         ]);
     }
 
-    // AbsenceController.php
-
     public function store(Request $request, $studentId)
     {
         $student = Student::findOrFail($studentId);
@@ -91,7 +89,6 @@ class AbsenceController extends Controller
         return response()->json(['success' => true, 'message' => 'Records saved']);
     }
 
-    // Helper to determine session string (optional)
     private function mapSeancesToSession(array $seances): ?string
     {
         if ($seances['seance1'] ?? false)
@@ -200,52 +197,56 @@ class AbsenceController extends Controller
 
     private function updateStudentCounters(Student $student)
     {
-        // Fixed: Get absences collection properly
+
         $absences = $student->absences()->get();
 
+        $rawHours = $absences->where('status', 'absent')->sum('duration');
+
+        $calculatedDays = ($rawHours * 2.5) / 10;
+
         $student->update([
-            'hours' => $absences->where('status', 'absent')->sum('duration') * 2.5,
+            'hours' => $rawHours * 2.5,
             'tardies' => $absences->where('status', 'late')->count(),
-            'days_absent' => $absences->where('status', 'absent')->pluck('date')->unique()->count(),
+            'days_absent' => $calculatedDays,
             'justified_absences' => $absences->where('status', 'justified')->count(),
         ]);
     }
 
-public function WorstStg(Request $request, $id_classe = null)
-{
-    $query = Absence::query();
+    public function WorstStg(Request $request, $id_classe = null)
+    {
+        $query = Absence::query();
 
-    // If dates are provided, use them. Otherwise, default to this week.
-    if ($request->has('date_from') && $request->has('date_to')) {
-        $query->whereBetween('date', [$request->date_from, $request->date_to]);
-    } else {
-        // Default: From Monday 00:00 to Sunday 23:59 of the current week
-        $startOfWeek = Carbon::now()->startOfWeek()->toDateString();
-        $endOfWeek = Carbon::now()->endOfWeek()->toDateString();
-        $query->whereBetween('date', [$startOfWeek, $endOfWeek]);
+        // If dates are provided, use them. Otherwise, default to this week.
+        if ($request->has('date_from') && $request->has('date_to')) {
+            $query->whereBetween('date', [$request->date_from, $request->date_to]);
+        } else {
+            // Default: From Monday 00:00 to Sunday 23:59 of the current week
+            $startOfWeek = Carbon::now()->startOfWeek()->toDateString();
+            $endOfWeek = Carbon::now()->endOfWeek()->toDateString();
+            $query->whereBetween('date', [$startOfWeek, $endOfWeek]);
+        }
+
+        // Filter by class if provided in the URL or request
+        if ($id_classe) {
+            $query->whereHas('student', function ($q) use ($id_classe) {
+                $q->where('group_id', $id_classe);
+            });
+        }
+
+        $worstStudents = $query->select('student_id', DB::raw('SUM(duration) as total_hours'))
+            ->where('status', 'absent')
+            ->groupBy('student_id')
+            ->orderBy('total_hours', 'desc') // 'desc' to get the most absent first
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'meta' => [
+                'period' => 'Weekly Default',
+                'start' => $startOfWeek ?? $request->date_from,
+                'end' => $endOfWeek ?? $request->date_to
+            ],
+            'data' => $worstStudents,
+        ]);
     }
-
-    // Filter by class if provided in the URL or request
-    if ($id_classe) {
-        $query->whereHas('student', function($q) use ($id_classe) {
-            $q->where('group_id', $id_classe);
-        });
-    }
-
-    $worstStudents = $query->select('student_id', DB::raw('SUM(duration) as total_hours'))
-        ->where('status', 'absent')
-        ->groupBy('student_id')
-        ->orderBy('total_hours', 'desc') // 'desc' to get the most absent first
-        ->get();
-
-    return response()->json([
-        'success' => true,
-        'meta' => [
-            'period' => 'Weekly Default',
-            'start' => $startOfWeek ?? $request->date_from,
-            'end' => $endOfWeek ?? $request->date_to
-        ],
-        'data' => $worstStudents,
-    ]);
-}
 }

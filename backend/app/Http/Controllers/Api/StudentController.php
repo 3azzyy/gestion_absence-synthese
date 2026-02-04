@@ -61,7 +61,7 @@ class StudentController extends Controller
     public function show($id)
     {
         $student = Student::with(['group', 'absences.creator'])->findOrFail($id);
-        
+
         return response()->json([
             'success' => true,
             'data' => $student,
@@ -110,9 +110,44 @@ class StudentController extends Controller
         return response()->json(['success' => true, 'data' => $stats]);
     }
 
-    
-    
-public function exportCsv()
+    public function DashboardStats(Request $request)
+    {
+        // 1. Total count of students
+        $total = Student::count();
+
+        // 2. Sum of all durations for 'absent' records
+        $totalHours = \App\Models\Absence::where('status', 'absent')->sum('duration');
+
+        // 3. Count students "At Risk" (e.g., > 5 days)
+        $atRisk = Student::where('days_absent', '>', 5)->count();
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'total' => $total,
+                'atRisk' => $atRisk,
+                'totalHours' => $totalHours / 1,
+                'totalDays' => $totalHours / 10,
+            ]
+        ]);
+    }
+
+    public function bestStg(Request $request, $id_classe = null)
+    {
+        $topStudents = Student::where('class_group', $id_classe ? $id_classe : '!=', null)
+            ->where('hours','<=', 10)
+            ->orderBy('hours', 'asc')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $topStudents
+        ]);
+    }
+
+
+
+    public function exportCsv()
     {
         $students = Student::with('group')->get();
         $fileName = 'students_export_' . date('Y-m-d') . '.csv';
@@ -127,7 +162,7 @@ public function exportCsv()
 
         $columns = ['CEF', 'First Name', 'Last Name', 'Group', 'Email', 'Level', 'Hours'];
 
-        $callback = function() use($students, $columns) {
+        $callback = function () use ($students, $columns) {
             $file = fopen('php://output', 'w');
             fputcsv($file, $columns);
 
@@ -151,10 +186,10 @@ public function exportCsv()
     public function import(Request $request)
     {
         $request->validate(['file' => 'required|file|mimes:csv,txt']);
-        
+
         $file = fopen($request->file('file')->getRealPath(), 'r');
         $header = fgetcsv($file); // Skip header row
-        
+
         $imported = 0;
         DB::beginTransaction();
         try {

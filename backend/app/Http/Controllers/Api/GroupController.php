@@ -5,12 +5,20 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Group;
 use Illuminate\Http\Request;
+use function Laravel\Prompts\search;
 
 class GroupController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $groups = Group::withCount('students')->get();
+        $search = $request->input('search');
+        $groups = Group::withCount('students');
+
+        if ($search) {
+            $groups = $groups->where('name', 'like', "%$search%");
+        }
+
+        $groups = $groups->get();
 
         return response()->json([
             'success' => true,

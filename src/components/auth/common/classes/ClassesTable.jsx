@@ -2,7 +2,8 @@ import React from 'react';
 import ClassRow from './ClassRow';
 import EmptyState from './EmptyState';
 
-const ClassesTable = ({ classes, onViewClass }) => (
+const ClassesTable = (props) => (<>
+
   <div className="table-wrapper">
     <style> 
       {`
@@ -21,7 +22,7 @@ const ClassesTable = ({ classes, onViewClass }) => (
         </tr>
       </thead>
       <tbody>
-        {classes.length === 0 ? (
+        {props.classes?.length === 0 ? (
           <tr>
             <td colSpan="4" style={{padding: 0}}>
               <EmptyState 
@@ -31,17 +32,16 @@ const ClassesTable = ({ classes, onViewClass }) => (
             </td>
           </tr>
         ) : (
-          classes.map(classData => (
+          props.classes?.map(classData => (
             <ClassRow 
               key={classData.id}
-              classData={classData}
-              onViewClass={onViewClass}
+              class={classData}
             />
           ))
         )}
       </tbody>
     </table>
   </div>
-);
+</>);
 
 export default ClassesTable;

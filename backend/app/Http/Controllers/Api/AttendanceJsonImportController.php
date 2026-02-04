@@ -46,7 +46,6 @@ class AttendanceJsonImportController extends Controller
                 'success' => true,
                 'preview' => $preview,
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -84,11 +83,11 @@ class AttendanceJsonImportController extends Controller
             }
 
             $skipEmpty = $request->get('skip_empty', true);
-            
+
             DB::beginTransaction();
-            
+
             $result = $this->processImport($data, $skipEmpty);
-            
+
             DB::commit();
 
             return response()->json([
@@ -96,10 +95,9 @@ class AttendanceJsonImportController extends Controller
                 'message' => "Class {$data['class_name']} imported successfully",
                 'stats' => $result,
             ]);
-
         } catch (\Exception $e) {
             DB::rollBack();
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Import failed: ' . $e->getMessage(),
@@ -115,7 +113,7 @@ class AttendanceJsonImportController extends Controller
     {
         $className = $data['class_name'];
         $students = $data['students'];
-        
+
         $existingCefs = Student::pluck('cef')->toArray();
         $newStudents = 0;
         $existingStudents = 0;
@@ -154,7 +152,7 @@ class AttendanceJsonImportController extends Controller
             'total_attendance_records' => $totalAttendanceRecords,
             'non_empty_records' => $totalAttendanceRecords - ($attendanceBreakdown['empty'] ?? 0),
             'attendance_breakdown' => $attendanceBreakdown,
-            'sample_students' => array_slice(array_map(function($s) use ($existingCefs) {
+            'sample_students' => array_slice(array_map(function ($s) use ($existingCefs) {
                 return [
                     'cef' => $s['cef'],
                     'name' => $s['prenom'] . ' ' . $s['nom'],
@@ -171,7 +169,7 @@ class AttendanceJsonImportController extends Controller
     {
         $className = $data['class_name'];
         $students = $data['students'];
-        
+
         // Create or get the group
         $group = Group::firstOrCreate(
             ['name' => $className],
@@ -188,7 +186,7 @@ class AttendanceJsonImportController extends Controller
         foreach ($students as $studentData) {
             // Create or update student
             $student = Student::where('cef', $studentData['cef'])->first();
-            
+
             $studentAttributes = [
                 'first_name' => $studentData['prenom'],
                 'last_name' => $studentData['nom'],
@@ -221,7 +219,7 @@ class AttendanceJsonImportController extends Controller
 
                         // Map status from JSON to database enum
                         $dbStatus = $this->mapStatus($status);
-                        
+
                         // Convert session key (s1, s2, s3, s4) to uppercase
                         $sessionName = strtoupper($sessionKey); // S1, S2, S3, S4
 
@@ -277,12 +275,17 @@ class AttendanceJsonImportController extends Controller
      */
     private function updateStudentCounters(Student $student)
     {
+
         $absences = $student->absences()->get();
 
+        $rawHours = $absences->where('status', 'absent')->sum('duration');
+
+        $calculatedDays = ($rawHours * 2.5) / 10;
+
         $student->update([
-            'hours' => $absences->where('status', 'absent')->sum('duration') * 2.5,
+            'hours' => $rawHours * 2.5,
             'tardies' => $absences->where('status', 'late')->count(),
-            'days_absent' => $absences->where('status', 'absent')->pluck('date')->unique()->count(),
+            'days_absent' => $calculatedDays,
             'justified_absences' => $absences->where('status', 'justified')->count(),
         ]);
     }
@@ -312,7 +315,7 @@ class AttendanceJsonImportController extends Controller
 
         foreach ($files as $file) {
             $filename = basename($file);
-            
+
             // Skip summary file
             if ($filename === 'summary.json') {
                 continue;
@@ -337,10 +340,9 @@ class AttendanceJsonImportController extends Controller
                 $totalStats['classes_processed']++;
                 $totalStats['students_total'] += $classStats['students_created'] + $classStats['students_updated'];
                 $totalStats['absences_total'] += $classStats['absences_created'];
-
             } catch (\Exception $e) {
                 DB::rollBack();
-                
+
                 $results[] = [
                     'class' => $filename,
                     'status' => 'failed',

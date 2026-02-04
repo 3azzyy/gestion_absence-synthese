@@ -44,6 +44,19 @@ const StudentsTab = ({
 
   return (
     <>
+            <FilterControls
+        groups={groups}
+        uniqueCodes={uniqueCodes}
+        groupFilter={groupFilter}
+        setGroupFilter={setGroupFilter}
+        statusFilter={statusFilter}
+        setStatusFilter={setStatusFilter}
+        searchInput={searchInput}
+        setSearchInput={setSearchInput}
+        onAddClick={onAddClick}
+        onExport={onExport}
+      />
+      
       <QuickStats 
         trainees={trainees} 
         onClick={(filter) => setStatusFilter(filter)}

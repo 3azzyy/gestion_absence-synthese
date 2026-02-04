@@ -22,7 +22,7 @@ export const sanctionLabel = (days, sanctionConfig) => {
 
 export const exportToCSV = (trainees, settings, sanctionConfig) => {
   const headers = ['Matricule', 'Nom', 'Groupe', 'Heures', 'Retards', 'Jours', 'Assiduité', 'Sanction', 'Action'];
-  
+
   const rows = trainees.map(t => [
     t.id,
     t.name,
@@ -46,4 +46,22 @@ export const exportToCSV = (trainees, settings, sanctionConfig) => {
   a.download = `absences_${new Date().toISOString().split('T')[0]}.csv`;
   a.click();
   URL.revokeObjectURL(url);
+};
+
+
+export const formatstudents = (students) => {
+  if (!students || !Array.isArray(students)) return [];
+
+  return students.map(student => ({
+    ...student,
+    id: student.id,
+    cef : student.cef,
+    name: student.full_name,
+    days: student.days_absent || 0,
+    heures: student.hours || 0,
+    retards: student.tardies || 0,
+    attendance: Math.max(0, 10 - (student.hours) / 10), // Assuming 10 hours = 1 day
+    group: student.group?.name || student.class_group || 'Sans Groupe',
+    absenceHistory: student.absences || []
+  }));
 };

@@ -13,6 +13,7 @@ import StudentsTab from './components/auth/students/studentstab.jsx';
 import AnalyticsTab from './components/auth/analytics/analyticstab.jsx';
 import PrintTab from './components/auth/print/printtab.jsx';
 import ClassesTab from './components/auth/common/classes/ClassesTab.jsx';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import UserManagement from './components/auth/admin/UserManagement.jsx';
 // Modals
 import AddTraineeModal from './components/auth/modals/addtraineemodal.jsx';
@@ -342,58 +343,69 @@ export default function App() {
 
         {/* CONTENU DES ONGLETS */}
         <main className="content-container">
-          {activeTab === 'dashboard' && (
-            <DashboardTab
-              trainees={getFilteredTrainees()}
-              settings={settings}
-              sanctionConfig={sanctionConfig}
-              onViewStudent={(id) => showAlert('Vue détaillée à venir', 'info')}
-            />
-          )}
+          <Routes>
+            {/* Default Route */}
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
-          {activeTab === 'classes' && (
-            <ClassesTab
-              trainees={Object.values(data.trainees)}
-              groups={filteredGroupsForClasses}
-              searchInput={classSearchInput}
-              setSearchInput={setClassSearchInput}
-              onViewClass={handleViewClass}
-            />
-          )}
+            {/* Dashboard: Fast loading with specific stats */}
+            <Route path="/dashboard" element={
+              <DashboardTab
+                settings={settings}                
+              />
+            } />
 
-          {activeTab === 'students' && (
-            <StudentsTab
-              trainees={getFilteredTrainees()}
-              groups={groups}
-              groupFilter={groupFilter}
-              setGroupFilter={setGroupFilter}
-              statusFilter={statusFilter}
-              setStatusFilter={setStatusFilter}
-              searchInput={searchInput}
-              setSearchInput={setSearchInput}
-              onAddClick={() => setShowAddModal(true)}
-              onEditClick={(id) => { setCurrentEditId(id); setShowEditModal(true); }}
-              onDeleteClick={deleteTrainee}
-              onExport={() => exportToCSV(getFilteredTrainees(), settings, sanctionConfig)}
-              sanctionConfig={sanctionConfig}
-              onSaveAbsences={handleSaveAbsences}
-            />
-          )}
+            {/* Classes View */}
+            <Route path="/classes" element={
+              <ClassesTab
+                onViewClass={handleViewClass}
+                searchInput={classSearchInput}
+                setSearchInput={setClassSearchInput}
+              />
+            } />
 
-          {activeTab === 'analytics' && (
-            <AnalyticsTab trainees={getformatedTrainees()} settings={settings} />
-          )}
+            {/* Students View: Full list loading happens here only */}
+            <Route path="/students" element={
+              <StudentsTab
+                trainees={getFilteredTrainees()}
+                groups={groups}
+                groupFilter={groupFilter}
+                setGroupFilter={setGroupFilter}
+                statusFilter={statusFilter}
+                setStatusFilter={setStatusFilter}
+                searchInput={searchInput}
+                setSearchInput={setSearchInput}
+                onAddClick={() => setShowAddModal(true)}
+                onEditClick={(id) => { setCurrentEditId(id); setShowEditModal(true); }}
+                onDeleteClick={deleteTrainee}
+                onExport={() => exportToCSV(getFilteredTrainees(), settings, sanctionConfig)}
+                sanctionConfig={sanctionConfig}
+                onSaveAbsences={handleSaveAbsences}
+              />
+            } />
 
-          {activeTab === 'print' && (
-            <PrintTab trainees={getFilteredTrainees()} sanctionConfig={sanctionConfig} />
-          )}
+            {/* Analytics View */}
+            <Route path="/analytics" element={
+              <AnalyticsTab trainees={getformatedTrainees()} settings={settings} />
+            } />
 
-          {activeTab === 'users' && currentUser?.role === 'admin' && (
-            <UserManagement
-              currentUser={currentUser}
-              showAlert={showAlert}
-            />
-          )}
+            {/* Print View */}
+            <Route path="/print" element={
+              <PrintTab trainees={getFilteredTrainees()} sanctionConfig={sanctionConfig} />
+            } />
+
+            {/* Admin: User Management */}
+            {currentUser?.role === 'admin' && (
+              <Route path="/users" element={
+                <UserManagement
+                  currentUser={currentUser}
+                  showAlert={showAlert}
+                />
+              } />
+            )}
+
+            {/* Fallback for 404s */}
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          </Routes>
         </main>
 
         {/* MODALS */}

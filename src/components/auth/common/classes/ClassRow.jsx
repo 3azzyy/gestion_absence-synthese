@@ -1,11 +1,22 @@
 import React from 'react';
 import { Eye } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
-const ClassRow = ({ classData, onViewClass }) => {
+const ClassRow = (props) => {
+  const navigate = useNavigate();
+  const classe = props.class;
+  const yearLabel = (classe) => {
+    if (classe && classe.name) {
+      if (classe.name.includes('10')) return "1er année";
+      if (classe.name.includes('20')) return "2ème année";
+      if (classe.name.includes('30')) return "3ème année";
+      else return "n/a";
+    }
+  }
   return (
-    <tr>
-      <td><strong>{classData.className}</strong></td>
-      <td>{classData.year}</td>
+    <tr key={classe.id}>
+      <td><strong>{classe.name}</strong></td>
+      <td>{yearLabel(classe)}</td>
       <td>
         <span style={{
           background: 'rgba(58,124,165,0.1)',
@@ -14,13 +25,13 @@ const ClassRow = ({ classData, onViewClass }) => {
           color: 'var(--primary)',
           fontWeight: 600
         }}>
-          {classData.studentCount}
+          {classe.students_count}
         </span>
       </td>
       <td>
-        <button 
-          className="btn btn-sm" 
-          onClick={() => onViewClass(classData.className)}
+        <button
+          className="btn btn-sm"
+          onClick={() => navigate(`/view-students/${classe.id}`)}
           title="Consulter les stagiaires"
         >
           <Eye size={14} /> Voir stagiaires

@@ -89,18 +89,7 @@ const Header = ({
         </div>
       </div>
     
-      <FilterControls
-        groups={groups}
-        uniqueCodes={uniqueCodes}
-        groupFilter={groupFilter}
-        setGroupFilter={setGroupFilter}
-        statusFilter={statusFilter}
-        setStatusFilter={setStatusFilter}
-        searchInput={searchInput}
-        setSearchInput={setSearchInput}
-        onAddClick={onAddClick}
-        onExport={onExport}
-      />
+
     </div>
   );
 };

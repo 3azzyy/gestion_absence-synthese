@@ -45,7 +45,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Absences routes
     Route::prefix('absences')->group(function () {
-        Route::get('/worst/{id_classe?}', [AbsenceController::class, 'WorstStg']);
+        
         Route::get('/', [AbsenceController::class, 'index']);
         Route::get('/statistics', [AbsenceController::class, 'statistics']);
         Route::put('/{id}', [AbsenceController::class, 'update']);
@@ -76,7 +76,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/config', [SanctionController::class, 'index']);
         Route::put('/config', [SanctionController::class, 'update']);
     });
+
+    Route::prefix('dashboard')->group(function () {
+        Route::get('/stats/{id_classe?}', [StudentController::class, 'DashboardStats']);
+        Route::get('/worst/{id_classe?}', [AbsenceController::class, 'WorstStg']);
+        Route::get('/best/{id_classe?}', [StudentController::class, 'BestStg']);
+    });
 });
+
+
 
 
 Route::prefix('attendance/json')->middleware('auth:sanctum')->group(function () {
