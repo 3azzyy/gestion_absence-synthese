@@ -1,6 +1,7 @@
-export const MONTHS = [
-  "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
-  "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"
+export const MONTHS = [ 
+  "Septembre", "Octobre", "Novembre", "Décembre",
+  "Janvier", "Février", "Mars", "Avril",
+   "Mai", "Juin","Juillet", "Août"
 ];
 
 export const DEFAULT_SANCTION_CONFIG = [

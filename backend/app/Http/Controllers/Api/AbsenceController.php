@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Absence;
 use App\Models\Student;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -209,4 +210,42 @@ class AbsenceController extends Controller
             'justified_absences' => $absences->where('status', 'justified')->count(),
         ]);
     }
+
+public function WorstStg(Request $request, $id_classe = null)
+{
+    $query = Absence::query();
+
+    // If dates are provided, use them. Otherwise, default to this week.
+    if ($request->has('date_from') && $request->has('date_to')) {
+        $query->whereBetween('date', [$request->date_from, $request->date_to]);
+    } else {
+        // Default: From Monday 00:00 to Sunday 23:59 of the current week
+        $startOfWeek = Carbon::now()->startOfWeek()->toDateString();
+        $endOfWeek = Carbon::now()->endOfWeek()->toDateString();
+        $query->whereBetween('date', [$startOfWeek, $endOfWeek]);
+    }
+
+    // Filter by class if provided in the URL or request
+    if ($id_classe) {
+        $query->whereHas('student', function($q) use ($id_classe) {
+            $q->where('group_id', $id_classe);
+        });
+    }
+
+    $worstStudents = $query->select('student_id', DB::raw('SUM(duration) as total_hours'))
+        ->where('status', 'absent')
+        ->groupBy('student_id')
+        ->orderBy('total_hours', 'desc') // 'desc' to get the most absent first
+        ->get();
+
+    return response()->json([
+        'success' => true,
+        'meta' => [
+            'period' => 'Weekly Default',
+            'start' => $startOfWeek ?? $request->date_from,
+            'end' => $endOfWeek ?? $request->date_to
+        ],
+        'data' => $worstStudents,
+    ]);
+}
 }

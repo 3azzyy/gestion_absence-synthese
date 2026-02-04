@@ -1,5 +1,5 @@
 import React from 'react';
-import { BarChart3, Users, Printer, Shield } from 'lucide-react';
+import { BarChart3, Users, Printer, Shield, Pen } from 'lucide-react';
 
 const TabsNavigation = ({ activeTab, setActiveTab, currentUser }) => (
   <div className="tabs">
@@ -35,14 +35,20 @@ const TabsNavigation = ({ activeTab, setActiveTab, currentUser }) => (
     </button>
     
     {/* Onglet Utilisateurs - Seulement pour les admins */}
-    {currentUser?.role === 'admin' && (
+    {currentUser?.role === 'admin' && (<>
       <button 
         className={`tab ${activeTab === 'users' ? 'active' : ''}`} 
         onClick={() => setActiveTab('users')}
       >
         <Shield size={16} style={{display: 'inline', marginRight: 4}} /> Utilisateurs
       </button>
-    )}
+      <button 
+        className={`tab ${activeTab === 'absences' ? 'active' : ''}`} 
+        onClick={() => setActiveTab('absences')}
+      >
+        <Pen size={16} style={{display: 'inline', marginRight: 4}} /> Absences
+      </button>
+    </>)}
   </div>
 );
 

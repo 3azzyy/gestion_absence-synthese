@@ -45,6 +45,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Absences routes
     Route::prefix('absences')->group(function () {
+        Route::get('/worst/{id_classe?}', [AbsenceController::class, 'WorstStg']);
         Route::get('/', [AbsenceController::class, 'index']);
         Route::get('/statistics', [AbsenceController::class, 'statistics']);
         Route::put('/{id}', [AbsenceController::class, 'update']);

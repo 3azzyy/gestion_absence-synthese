@@ -1,15 +1,27 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Eye } from 'lucide-react';
 import StatCard from './StatCard';
+import axios from 'axios';
 
 const DashboardTab = ({ trainees, settings, sanctionConfig, onViewStudent }) => {
   const total = trainees.length;
   const atRisk = trainees.filter(t => t.days >= 5).length;
   const totalHours = trainees.reduce((sum, t) => sum + t.heures, 0);
   const totalDays = trainees.reduce((sum, t) => sum + t.days, 0);
-  const avgAttendance = total > 0 
-    ? (trainees.reduce((sum, t) => sum + t.attendance, 0) / total).toFixed(1)
+  const avgAttendance = total > 0
+    ? (totalHours / total).toFixed(1)
     : 0;
+
+
+  const usersession = JSON.parse(localStorage.getItem('ista_auth_session'));
+  const api = axios.create({
+    baseURL: 'http://127.0.0.1:8000/api',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${usersession?.token}` 
+    }
+  });
 
   const warnings = trainees
     .filter(t => t.days >= 2)
@@ -22,6 +34,30 @@ const DashboardTab = ({ trainees, settings, sanctionConfig, onViewStudent }) => 
   const worstStudents = [...trainees]
     .sort((a, b) => a.attendance - b.attendance)
     .slice(0, 5);
+
+
+  useEffect(() => {
+    console.log("Fetching weekly stats for class ID:", );
+    const stg = fetchWeeklyStats();
+    console.log(stg);
+  }, [settings.id_classe]);
+
+  const fetchWeeklyStats = async (idClasse) => {
+    try {
+      // No params needed, the backend defaults to "this week"
+      const url = idClasse ? `absences/worst/${idClasse}` : `absences/worst`;
+      const response = await api.get(url);
+
+      if (response.data.success) {
+
+        return response.data.data;
+      }
+    } catch (error) {
+      console.error("Error fetching stats:", error);
+    }
+  };
+
+
 
   return (
     <>
@@ -37,10 +73,10 @@ const DashboardTab = ({ trainees, settings, sanctionConfig, onViewStudent }) => 
         <div className="card">
           <h2 className="card-header">Meilleurs Stagiaires</h2>
           {topStudents.length === 0 ? (
-            <p style={{color: 'var(--text-muted)'}}>Aucune donnée</p>
+            <p style={{ color: 'var(--text-muted)' }}>Aucune donnée</p>
           ) : (
             topStudents.map((t, i) => (
-              <div 
+              <div
                 key={t.id}
                 onClick={onViewStudent ? () => onViewStudent(t.id) : null}
                 style={{
@@ -61,11 +97,11 @@ const DashboardTab = ({ trainees, settings, sanctionConfig, onViewStudent }) => 
               >
                 <div>
                   <strong>{i + 1}. {t.name}</strong>
-                  <div style={{fontSize: 12, color: 'var(--text-muted)'}}>
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
                     {t.group} • {t.days.toFixed(2)} jours
                   </div>
                 </div>
-                <div style={{fontSize: 18, fontWeight: 700, color: 'var(--success)'}}>
+                <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--success)' }}>
                   {t.attendance.toFixed(1)}/10
                 </div>
               </div>
@@ -74,12 +110,12 @@ const DashboardTab = ({ trainees, settings, sanctionConfig, onViewStudent }) => 
         </div>
 
         <div className="card">
-          <h2 className="card-header">Stagiaires À Surveiller</h2>
+          <h2 className="card-header">Stagiaires À Surveiller Cette Semaine</h2>
           {worstStudents.length === 0 ? (
-            <p style={{color: 'var(--text-muted)'}}>Aucune donnée</p>
+            <p style={{ color: 'var(--text-muted)' }}>Aucune donnée</p>
           ) : (
             worstStudents.map((t, i) => (
-              <div 
+              <div
                 key={t.id}
                 onClick={onViewStudent ? () => onViewStudent(t.id) : null}
                 style={{
@@ -100,11 +136,11 @@ const DashboardTab = ({ trainees, settings, sanctionConfig, onViewStudent }) => 
               >
                 <div>
                   <strong>{i + 1}. {t.name}</strong>
-                  <div style={{fontSize: 12, color: 'var(--text-muted)'}}>
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
                     {t.group} • {t.days.toFixed(2)} jours
                   </div>
                 </div>
-                <div style={{fontSize: 18, fontWeight: 700, color: 'var(--danger)'}}>
+                <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--danger)' }}>
                   {t.attendance.toFixed(1)}/10
                 </div>
               </div>
