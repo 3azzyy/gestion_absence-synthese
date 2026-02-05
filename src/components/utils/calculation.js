@@ -1,3 +1,5 @@
+import { DEFAULT_SANCTION_CONFIG } from "./constants";
+
 export const calculateDays = (heures, retards, settings) => {
   const joursAbs = Number(heures || 0) / settings.hoursPerDay;
   const joursRet = Math.floor(Number(retards || 0) / settings.retardsPerDay);
@@ -52,10 +54,17 @@ export const exportToCSV = (trainees, settings, sanctionConfig) => {
 export const formatstudents = (students) => {
   if (!students || !Array.isArray(students)) return [];
 
-  return students.map(student => ({
+  const sanctionConfig = DEFAULT_SANCTION_CONFIG;
+
+  return students.map(student => 
+  {
+    const sanction = sanctionLabel(student.hours / 10 , sanctionConfig);
+    
+    return {
     ...student,
     id: student.id,
     cef : student.cef,
+    sanction: sanction,
     name: student.full_name,
     days: student.days_absent || 0,
     heures: student.hours || 0,
@@ -63,5 +72,6 @@ export const formatstudents = (students) => {
     attendance: Math.max(0, 10 - (student.hours) / 10), // Assuming 10 hours = 1 day
     group: student.group?.name || student.class_group || 'Sans Groupe',
     absenceHistory: student.absences || []
-  }));
+  }
+});
 };

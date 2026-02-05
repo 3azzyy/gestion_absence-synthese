@@ -8,6 +8,7 @@ const ClassesTab = () => {
   const [searchInput, setSearchInput] = useState('');
   const [Groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [yearFilter, setYearFilter] = useState('1er année');
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
@@ -45,6 +46,8 @@ const fetchGroups = async (search) => {
       <ClassFilterControls
         searchInput={searchInput}
         setSearchInput={setSearchInput}
+        yearFilter={yearFilter}
+        setYearFilter={setYearFilter}
       />
       <div className="card" style={{ marginBottom: 24 }}>
         <h2 className="card-header">
@@ -59,7 +62,7 @@ const fetchGroups = async (search) => {
           <div className="p-4 text-center">Chargement...</div>
         ) : (
           <ClassesTable
-            classes={Groups} // Ensure your ClassesTable uses this prop correctly
+            classes={Groups} year={yearFilter} // Ensure your ClassesTable uses this prop correctly
           />
         )}
       </div>

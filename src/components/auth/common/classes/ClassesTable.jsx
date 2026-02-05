@@ -36,6 +36,7 @@ const ClassesTable = (props) => (<>
             <ClassRow 
               key={classData.id}
               class={classData}
+              year={props.year}
             />
           ))
         )}

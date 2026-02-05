@@ -25,6 +25,16 @@ class StudentController extends Controller
             'success' => true,
             'data' => $query->get()
         ]);
+    }                               
+
+        public function byClass(Request $request, $class)
+    {
+        $query = Student::with(['group', 'absences'])->where('class_group', $class)->withCount('absences');
+        
+        return response()->json([
+            'success' => true,
+            'data' => $query->get()
+        ]);
     }
 
     public function search(Request $request)

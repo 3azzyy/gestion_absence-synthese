@@ -165,6 +165,7 @@ const GlobalStyles = () => (
       font-family: inherit;
       transition: all 0.2s ease;
       color: var(--text-primary);
+
     }
 
     .input:focus, select:focus, textarea:focus {

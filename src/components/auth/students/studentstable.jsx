@@ -39,9 +39,9 @@ const StudentsTable = ({ trainees, onEditClick, onDeleteClick, onViewClick }) =>
             <StudentRow 
               key={t.id}
               trainee={t}
-              onEditClick={onEditClick}
-              onDeleteClick={onDeleteClick}
-              onViewClick={onViewClick}
+              // onEditClick={onEditClick}
+              // onDeleteClick={onDeleteClick}
+              // onViewClick={onViewClick}
             />
           ))
         )}

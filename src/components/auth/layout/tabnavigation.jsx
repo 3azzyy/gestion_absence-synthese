@@ -16,7 +16,7 @@ const TabsNavigation = ({ currentUser }) => {
         <Users size={16} style={iconStyle} /> Classes
       </NavLink>
       
-      <NavLink to="/students" className={({ isActive }) => `tab ${isActive ? 'active' : ''}`}>
+      <NavLink to="/view-students/latest" className={({ isActive }) => `tab ${isActive ? 'active' : ''}`}>
         <Users size={16} style={iconStyle} /> Stagiaires
       </NavLink>
       

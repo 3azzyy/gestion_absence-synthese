@@ -157,17 +157,17 @@ export const authenticateUser = async (username, password) => {
       return { success: true, user, session };
     }
   } catch (error) {
-    console.warn("API login failed, checking local users...");
+    // console.warn("API login failed, checking local users...");
     
-    // Local Fallback (Useful for offline development or local-only admins)
-    const users = getAllUsers();
-    // Safety check: ensure users is an array before calling .find
-    const localUser = (users || []).find(u => u.username === username && u.password === password);
+    // // Local Fallback (Useful for offline development or local-only admins)
+    // const users = getAllUsers();
+    // // Safety check: ensure users is an array before calling .find
+    // const localUser = (users || []).find(u => u.username === username && u.password === password);
     
-    if (localUser) {
-      const session = createSession(localUser, 'local_token_' + Date.now());
-      return { success: true, user: localUser, session };
-    }
+    // if (localUser) {
+    //   const session = createSession(localUser, 'local_token_' + Date.now());
+    //   return { success: true, user: localUser, session };
+    // }
 
     const message = error.response?.data?.message || 'Identifiants incorrects';
     return { success: false, error: message };

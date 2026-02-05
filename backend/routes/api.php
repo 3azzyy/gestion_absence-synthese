@@ -29,6 +29,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Students routes
     Route::prefix('students')->group(function () {
         Route::get('/', [StudentController::class, 'index']);
+        Route::get('/classes/{class}', [StudentController::class, 'byClass']);
         Route::get('/search', [StudentController::class, 'search']);
         Route::get('/export/csv', [StudentController::class, 'exportCsv']);
         Route::post('/import', [StudentController::class, 'import']);

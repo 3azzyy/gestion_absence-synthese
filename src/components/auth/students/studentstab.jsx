@@ -1,111 +1,166 @@
-import React, { useState } from 'react';
-import QuickStats from '../dashboard/quickstat';
-import FilterControls from './filtercontrols';
+import React, { useEffect, useState } from 'react';
 import StudentsTable from './studentstable';
-import AddAbsenceModal from '../modals/AddAbsenceModal';
-import ViewAbsencesModal from '../modals/ViewAbsencesModal';
+import { useLocation, useNavigate } from 'react-router-dom';
+import api from '../../../services/http';
+import { formatstudents } from '../../utils/calculation';
+import { DEFAULT_SANCTION_CONFIG } from '../../utils/constants';
 
-const StudentsTab = ({ 
-  trainees, 
-  groups, 
-  groupFilter, 
-  setGroupFilter,
-  statusFilter,
-  setStatusFilter,
-  searchInput,
-  setSearchInput,
-  onAddClick,
-  onEditClick,
-  onDeleteClick,
-  onViewClick,
-  onExport,
-  sanctionConfig,
-  onSaveAbsences  // Nouvelle prop
-}) => {
-  const [showAbsenceModal, setShowAbsenceModal] = useState(false);
-  const [showViewModal, setShowViewModal] = useState(false);
-  const [selectedTrainee, setSelectedTrainee] = useState(null);
+const StudentsTab = () => {
+  const locate = useLocation();
+  const navigate = useNavigate();
+  const [trainees, setTrainees] = useState([]);
+  const [filTrainees, setFilTrainees] = useState(trainees);
+  const [classe, setClasse] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [groups, setGroups] = useState([]);
+  const [filters, setFilters] = useState({ sanction: "", input: "" })
+  const sanctions = DEFAULT_SANCTION_CONFIG
 
-  const uniqueCodes = [...new Set(sanctionConfig.map(s => s.code))];
 
-  // Ouvrir le modal d'ajout d'absence
-  const handleAddAbsence = (traineeId) => {
-    const trainee = trainees.find(t => t.id === traineeId);
-    setSelectedTrainee(trainee);
-    setShowAbsenceModal(true);
+  useEffect(() => {
+    const pathSegments = locate.pathname.split('/');
+    const classFromUrl = pathSegments[2] || "latest";
+    setClasse(classFromUrl);
+
+    setGroups([])
+  }, [locate.pathname]);
+
+
+  useEffect(() => {
+    const loadStudents = async () => {
+      if (!classe) return;
+
+      setLoading(true);
+      try {
+
+        const targetUrl = classe === "latest" ? '/students' : `/students/classes/${classe}`;
+
+        const response = await api.get(targetUrl);
+        const data = response.data.data || response.data;
+
+
+        const formattedData = formatstudents(data);
+        setTrainees(formattedData);
+        setFilTrainees(formattedData);
+      } catch (error) {
+        console.error('Error fetching students:', error);
+        setTrainees([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadStudents();
+  }, [classe]);
+
+
+  useEffect(() => {
+    // Always start filtering from the master list (trainees)
+    let result = [...trainees];
+
+    // 1. Filter by Sanction (Status)
+    if (filters.sanction !== "") {
+      result = result.filter(t => t.sanction.label === filters.sanction);
+    }
+
+    // 2. Filter by Name (Search)
+    if (filters.input !== "") {
+      const searchTerm = filters.input.toLowerCase();
+      result = result.filter(t =>
+        t.name.toLowerCase().includes(searchTerm)
+      );
+    }
+
+    setFilTrainees(result);
+  }, [filters, trainees]);
+
+
+  
+  const handleGroupChange = (e) => {
+    const newGroup = e.target.value;
+    if (newGroup === "") {
+      navigate('/students/latest');
+    } else {
+      navigate(`/students/classes/${newGroup}`);
+    }
   };
 
-  // Ouvrir le modal de visualisation
-  const handleViewAbsences = (traineeId) => {
-    const trainee = trainees.find(t => t.id === traineeId);
-    setSelectedTrainee(trainee);
-    setShowViewModal(true);
-  };
+
 
   return (
     <>
-            <FilterControls
-        groups={groups}
-        uniqueCodes={uniqueCodes}
-        groupFilter={groupFilter}
-        setGroupFilter={setGroupFilter}
-        statusFilter={statusFilter}
-        setStatusFilter={setStatusFilter}
-        searchInput={searchInput}
-        setSearchInput={setSearchInput}
-        onAddClick={onAddClick}
-        onExport={onExport}
-      />
-      
-      <QuickStats 
-        trainees={trainees} 
-        onClick={(filter) => setStatusFilter(filter)}
-      />
-      
-      {/* <FilterControls
-        groups={groups}
-        uniqueCodes={uniqueCodes}
-        groupFilter={groupFilter}
-        setGroupFilter={setGroupFilter}
-        statusFilter={statusFilter}
-        setStatusFilter={setStatusFilter}
-        searchInput={searchInput}
-        setSearchInput={setSearchInput}
-        onAddClick={onAddClick}
-        onExport={onExport}
-      /> */}
 
-      <div className="card">
-        <h2 className="card-header">
-          Liste des Stagiaires
-          <span style={{fontSize: 14, fontWeight: 400, color: 'var(--text-secondary)'}}>
-            ({trainees.length} résultat{trainees.length > 1 ? 's' : ''})
-          </span>
-        </h2>
-        <StudentsTable 
-          trainees={trainees}
-          onEditClick={handleAddAbsence}
-          onDeleteClick={onDeleteClick}
-          onViewClick={handleViewAbsences}
-        />
+
+      <div className="controls-section">
+        <div className="controls-grid">
+
+          <div className="form-group">
+
+            <label className="form-label">Filtrer par groupe</label>
+
+            <select className="input" value={classe} onChange={handleGroupChange}>
+              <option value="">Tous les groupes</option>
+              {groups ? groups.map(g => <option key={g} value={g}>{g}</option>) : <option> rien </option>}
+            </select>
+
+          </div>
+
+          <div className="form-group">
+
+            <label className="form-label">Filtrer par statut</label>
+
+            <select className="input" value={filters.sanction} onChange={(e) => setFilters({ ...filters, sanction: e.target.value })}>
+              <option value="">Tous les statuts</option>
+              {sanctions.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
+
+            </select>
+
+          </div>
+
+          <div className="form-group">
+
+            <label className="form-label">Rechercher</label>
+
+            <input
+              className="input"
+              placeholder="chercher stagiaire"
+              value={filters.input}
+              onChange={(e) => setFilters({ ...filters, input: e.target.value })}
+            />
+
+          </div>
+          {/* 
+          <button className="btn" onClick={onAddClick}>
+            <Plus size={16} /> Ajouter
+          </button> */}
+
+          {/* {onExport && (
+            <button className="btn btn-success" onClick={onExport}>
+              <Download size={16} /> Exporter
+            </button>
+          )} */}
+        </div>
       </div>
 
-      {/* Modal d'ajout d'absences */}
-      {showAbsenceModal && selectedTrainee && (
-        <AddAbsenceModal
-          trainee={selectedTrainee}
-          onClose={() => setShowAbsenceModal(false)}
-          onSave={onSaveAbsences}
-        />
-      )}
+      <div className="card">
 
-      {/* Modal de visualisation des absences */}
-      {showViewModal && selectedTrainee && (
-        <ViewAbsencesModal
-          trainee={selectedTrainee}
-          onClose={() => setShowViewModal(false)}
+        <h2 className="card-header">
+
+          Liste des Stagiaires
+
+          <span style={{ fontSize: 14, fontWeight: 400, color: 'var(--text-secondary)' }}>
+            ({filTrainees.length} résultat{filTrainees.length > 1 ? 's' : ''})
+          </span>
+
+        </h2>
+
+        <StudentsTable
+          trainees={filTrainees}
         />
-      )}
+
+      </div>
+
+
     </>
   );
 };

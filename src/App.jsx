@@ -75,32 +75,32 @@ export default function App() {
   useEffect(() => {
     const session = getSession();
 
-    const fetchTraineesFromDB = async (token) => {
-      try {
-        const response = await api.get('/students', {
-          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
-        });
+    // const fetchTraineesFromDB = async (token) => {
+    //   try {
+    //     const response = await api.get('/students', {
+    //       headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+    //     });
 
-        const apiTrainees = response.data.data.data || response.data.data || [];
-        const formattedTrainees = {};
+    //     const apiTrainees = response.data.data.data || response.data.data || [];
+    //     const formattedTrainees = {};
 
-        apiTrainees.forEach(student => {
-          formattedTrainees[student.id] = {
-            ...student,
-            name: student.full_name,
-            heures: student.hours || 0,
-            retards: student.tardies || 0,
-            group: student.group?.name || student.class_group || 'Sans Groupe',
-            absenceHistory: student.absenceHistory || []
-          };
-        });
+    //     apiTrainees.forEach(student => {
+    //       formattedTrainees[student.id] = {
+    //         ...student,
+    //         name: student.full_name,
+    //         heures: student.hours || 0,
+    //         retards: student.tardies || 0,
+    //         group: student.group?.name || student.class_group || 'Sans Groupe',
+    //         absenceHistory: student.absenceHistory || []
+    //       };
+    //     });
 
-        setData({ trainees: formattedTrainees });
-      } catch (error) {
-        console.error("Erreur de récupération DB:", error);
-        setData({ trainees: {} });
-      }
-    };
+    //     setData({ trainees: formattedTrainees });
+    //   } catch (error) {
+    //     console.error("Erreur de récupération DB:", error);
+    //     setData({ trainees: {} });
+    //   }
+    // };
 
     if (session && session.token) {
       axios.defaults.headers.common['Authorization'] = `Bearer ${session.token}`;
@@ -119,12 +119,12 @@ export default function App() {
   // LOGIQUE DE CALCUL ET FILTRAGE
   // =============================================
 
-  const handleViewClass = (className) => {
-    setGroupFilter(className);
-    setSearchInput('');
-    setStatusFilter('');
-    setActiveTab('students');
-  };
+  // const handleViewClass = (className) => {
+  //   setGroupFilter(className);
+  //   setSearchInput('');
+  //   setStatusFilter('');
+  //   setActiveTab('students');
+  // };
 
   const groups = [...new Set(Object.values(data.trainees).map(t => t.group))].sort();
 
@@ -364,7 +364,7 @@ export default function App() {
             } />
 
             {/* Students View: Full list loading happens here only */}
-            <Route path="/students" element={
+            <Route path="/view-students/:id" element={
               <StudentsTab
                 trainees={getFilteredTrainees()}
                 groups={groups}
