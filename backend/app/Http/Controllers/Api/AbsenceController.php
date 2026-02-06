@@ -18,8 +18,8 @@ class AbsenceController extends Controller
         $query = Absence::with(['student', 'creator']);
 
         // Date range filter
-        if ($request->has('date_from') && $request->has('date_to')) {
-            $query->byDateRange($request->date_from, $request->date_to);
+        if ($request->filled(['date_from', 'date_to'])) {
+            $query->whereBetween('date', [$request->date_from, $request->date_to]);
         }
 
         // Student filter
@@ -225,7 +225,7 @@ class AbsenceController extends Controller
             $end = Carbon::now()->endOfWeek()->toDateString();
             $period = 'Weekly Default';
         }
-        
+
 
         // 2. Aggregate Absences
         $absences = Absence::with(['student'])
@@ -244,16 +244,16 @@ class AbsenceController extends Controller
             // ->take(10) // Top 10 worst
             ->get();
 
-        $data = $absences->map(function ($abs) use ($start, $end){
+        $data = $absences->map(function ($abs) use ($start, $end) {
             $student = $abs->student;
 
             // Attach your calculated math directly to the student object
             $student->hours = $abs->total_hours * 2.5;
             $student->days_absent = ($abs->total_hours * 2.5) / 10;
-            
-            $student->absences = Absence::where('student_id', $student->id )
-                                ->whereBetween('date', [$start, $end])
-                                ->get();
+
+            $student->absences = Absence::where('student_id', $student->id)
+                ->whereBetween('date', [$start, $end])
+                ->get();
             return $student;
         });
 

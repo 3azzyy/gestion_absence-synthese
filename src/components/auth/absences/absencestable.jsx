@@ -1,6 +1,7 @@
+import EmptyState from "../common/classes/EmptyState";
 import AbsenceRow from "./absencesrow";
 
-export default function AbsenceTable() {
+export default function AbsenceTable({absences}) {
 
 
 
@@ -9,10 +10,10 @@ export default function AbsenceTable() {
         <div className="table-wrapper">
             <style>
                 {`
-        th, td {  
-          text-align: center!important;
-        }
-      `}
+                    th, td {  
+                    text-align: center!important;
+                    }
+                `}
             </style>
             <table className="table">
                 <thead>
@@ -28,7 +29,24 @@ export default function AbsenceTable() {
                     </tr>
                 </thead>
                 <tbody>
-                    <AbsenceRow />
+
+                    {absences.length === 0 ? (
+                        <tr>
+                            <td colSpan="8" style={{ padding: 0 }}>
+                                <EmptyState
+                                    message="Aucun stagiaire trouvé"
+                                    description="Commencez par ajouter des stagiaires ou ajustez vos filtres"
+                                />
+                            </td>
+                        </tr>
+                    ) : (
+                        absences.map(abs => (
+                            <AbsenceRow
+                                key={abs.id}
+                                abs={abs}
+                            />
+                        ))
+                    )}
                 </tbody>
             </table>
         </div>

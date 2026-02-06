@@ -1,177 +1,182 @@
-import AbsenceTable from "./absencestable";
 import React, { useEffect, useState } from 'react';
-
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import api from '../../../services/http';
-import { formatstudents } from '../../utils/calculation';
-import { DEFAULT_SANCTION_CONFIG } from '../../utils/constants';
-import { fetchWorstStudents } from '../../utils/storage';
+import AbsenceTable from "./absencestable";
 
-
-export default function Absence(){
-
-
- const locate = useLocation();
-  const navigate = useNavigate();
-  const [trainees, setTrainees] = useState([]);
-  const [filTrainees, setFilTrainees] = useState(trainees);
-  const [classe, setClasse] = useState("");
+export default function Absence() {
+  const [absences, setAbsences] = useState([]);
   const [loading, setLoading] = useState(false);
   const [groups, setGroups] = useState([]);
-  const [filters, setFilters] = useState({ sanction: "", input: "" })
-  const sanctions = DEFAULT_SANCTION_CONFIG
 
+  const [pagination, setPagination] = useState({
+    current: 1,
+    last: 1,
+    total: 0
+  });
+
+  const [filters, setFilters] = useState({
+    // Default to a wide range to ensure data shows up during testing
+    date_from: "2026-01-01",
+    date_to: new Date().toISOString().split('T')[0],
+    // status: "absent",
+    // group: "", 
+    input: ""
+  });
 
   useEffect(() => {
-    const pathSegments = locate.pathname.split('/');
-    const classFromUrl = pathSegments[2] || "latest";
-    setClasse(classFromUrl);
-    fetchWorstStudents();
-    setGroups(JSON.parse(localStorage.getItem('classlist')));
-  }, [locate.pathname]);
-
+    const classList = JSON.parse(localStorage.getItem('classlist')) || [];
+    setGroups(classList);
+  }, []);
 
   useEffect(() => {
-    const loadStudents = async () => {
-      if (!classe) return;
-      
+    const fetchHistory = async () => {
       setLoading(true);
-
       try {
-        let formattedData = []
-        
-        if(classe === "latest"){
-          formattedData = formatstudents(JSON.parse(localStorage.getItem('worstData'))) 
-        }else{
-        const targetUrl = `/students/classes/${classe}`;
+        const params = {
+          date_from: filters.date_from,
+          date_to: filters.date_to,
+          status: filters.status,
+          group: filters.group,
+          page: pagination.current
+        };
 
-        const response = await api.get(targetUrl);
-        const data = response.data.data || response.data;
+        const response = await api.get('/absences', { params });
+        const result = response.data.data;
 
-
-        formattedData = formatstudents(data);
-        }
-        setTrainees(formattedData);
-        setFilTrainees(formattedData);
+        // Sync with Laravel Paginate structure
+        setAbsences(result.data || []);
+        setPagination(prev => ({
+          ...prev,
+          current: result.current_page,
+          last: result.last_page,
+          total: result.total
+        }));
       } catch (error) {
-        console.error('Error fetching students:', error);
-        setTrainees([]);
+        console.error('Error fetching absences:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    loadStudents();
-  }, [classe]);
+    const timer = setTimeout(fetchHistory, 400);
+    return () => clearTimeout(timer);
+  }, [filters, pagination.current]);
 
+  // Matches your DB 'status' enum: absent, late, justified, present
+  const statusOptions = [
+    { label: 'Absent', value: 'absent' },
+    { label: 'Retard', value: 'late' },
+    { label: 'Justifié', value: 'justified' }
+  ];
 
-  useEffect(() => {
-    // Always start filtering from the master list (trainees)
-    let result = [...trainees];
-
-    // 1. Filter by Sanction (Status)
-    if (filters.sanction !== "") {
-      result = result.filter(t => t.sanction.label === filters.sanction);
-    }
-
-    // 2. Filter by Name (Search)
-    if (filters.input !== "") {
-      const searchTerm = filters.input.toLowerCase();
-      result = result.filter(t =>
-        t.name.toLowerCase().includes(searchTerm)
-      );
-    }
-
-    setFilTrainees(result);
-  }, [filters, trainees]);
-
-
-  
-  const handleGroupChange = (e) => {
-    const newGroup = e.target.value;
-    if (newGroup === "") {
-      navigate('/view-students/latest');
-    } else {
-      navigate(`/view-students/${newGroup}`);
-    }
-  };
-
-
+  let displayedData = []
+  if (filters.input !== "") {
+    displayedData = absences.filter(abs =>
+      abs.student?.name?.toLowerCase().includes(filters.input.toLowerCase())
+    );
+  }else displayedData = absences
 
   return (
-    <>
-
-
+    <div className="absence-container">
       <div className="controls-section">
-        <div className="controls-grid">
+        <div className="controls-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem' }}>
 
           <div className="form-group">
-
-            <label className="form-label">Filtrer par groupe</label>
-
-            <select className="input" value={classe} onChange={handleGroupChange}>
-              <option value="">Stagiaires À Surveiller Cette Semaine</option>
-              {groups ? groups.map(g => <option key={g.id} value={g.name}>{g.name}</option>) : <option> rien </option>}
-            </select>
-
+            <label className="form-label">Date Début</label>
+            <input
+              type="date"
+              className="input"
+              value={filters.date_from}
+              onChange={(e) => setFilters({ ...filters, date_from: e.target.value })}
+            />
           </div>
 
           <div className="form-group">
+            <label className="form-label">Date Fin</label>
+            <input
+              type="date"
+              className="input"
+              value={filters.date_to}
+              onChange={(e) => setFilters({ ...filters, date_to: e.target.value })}
+            />
+          </div>
 
-            <label className="form-label">Filtrer par statut</label>
+          <div className="form-group">
+            <label className="form-label">Groupe</label>
+            <select
+              className="input"
+              value={filters.group}
+              onChange={(e) => setFilters({ ...filters, group: e.target.value })}
+            >
+              <option value="">Tous les groupes</option>
+              {groups?.map(g => (
+                <option key={g.id} value={g.name}>{g.name}</option>
+              ))}
+            </select>
+          </div>
 
-            <select className="input" value={filters.sanction} onChange={(e) => setFilters({ ...filters, sanction: e.target.value })}>
+          <div className="form-group">
+            <label className="form-label">Statut</label>
+            <select
+              className="input"
+              value={filters.status}
+              onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+            >
               <option value="">Tous les statuts</option>
-              {sanctions.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
-
+              {statusOptions.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
             </select>
-
           </div>
 
           <div className="form-group">
-
-            <label className="form-label">Rechercher</label>
-
+            <label className="form-label">Recherche Stagiaire</label>
             <input
               className="input"
-              placeholder="chercher stagiaire"
+              placeholder="Nom..."
               value={filters.input}
               onChange={(e) => setFilters({ ...filters, input: e.target.value })}
             />
-
           </div>
-          {/* 
-          <button className="btn" onClick={onAddClick}>
-            <Plus size={16} /> Ajouter
-          </button> */}
-
-          {/* {onExport && (
-            <button className="btn btn-success" onClick={onExport}>
-              <Download size={16} /> Exporter
-            </button>
-          )} */}
         </div>
       </div>
 
-      <div className="card">
-
-        <h2 className="card-header">
-
-          Liste des Stagiaires
-
+      <div className="card" style={{ marginTop: '20px' }}>
+        <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px' }}>
+          <h2 style={{ margin: 0 }}>Historique des présences</h2>
           <span style={{ fontSize: 14, fontWeight: 400, color: 'var(--text-secondary)' }}>
-            ({filTrainees.length} résultat{filTrainees.length > 1 ? 's' : ''})
+            ({pagination.total} résultat{pagination.total > 1 ? 's' : ''})
           </span>
+        </div>
 
-        </h2>
+        {loading ? (
+          <div style={{ padding: '40px', textAlign: 'center' }}>Chargement des données...</div>
+        ) : (
+          <>
+            <AbsenceTable absences={displayedData} />
 
-        <AbsenceTable
-          trainees={filTrainees}
-        />
-
+            {pagination.last > 1 && (
+              <div className="pagination-wrapper" style={{ display: 'flex', justifyContent: 'center', padding: '20px', gap: '15px' }}>
+                <button
+                  className="btn"
+                  disabled={pagination.current === 1}
+                  onClick={() => setPagination(p => ({ ...p, current: p.current - 1 }))}
+                >
+                  Précédent
+                </button>
+                <span style={{ alignSelf: 'center' }}>Page {pagination.current} / {pagination.last}</span>
+                <button
+                  className="btn"
+                  disabled={pagination.current === pagination.last}
+                  onClick={() => setPagination(p => ({ ...p, current: p.current + 1 }))}
+                >
+                  Suivant
+                </button>
+              </div>
+            )}
+          </>
+        )}
       </div>
-
-
-    </>
+    </div>
   );
-};
+}

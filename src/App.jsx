@@ -78,15 +78,15 @@ export default function App() {
 
     const fetchTraineesFromDB = async (token) => {
       try {
-        const response = await api.get('/students', {
-          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
-        });
+        // const response = await api.get('/students', {
+        //   headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        // });
 
-        // const response = {
-        //   data : {
-        //     data : []
-        //   }
-        // }
+        const response = {
+          data : {
+            data : []
+          }
+        }
 
         const apiTrainees = response.data.data.data || response.data.data || [];
         const formattedTrainees = {};
