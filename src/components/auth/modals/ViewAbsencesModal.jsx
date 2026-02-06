@@ -11,7 +11,6 @@ const ViewAbsencesModal = ({ trainee, onClose }) => {
 
   // Récupérer l'historique des absences
   const absenceHistory = trainee.absences || [];
-  console.log(absenceHistory)
 
   // 1. Helper function to avoid repeating the grouping logic
   const groupDataByDate = (data) => {
@@ -49,9 +48,6 @@ const ViewAbsencesModal = ({ trainee, onClose }) => {
   // 2. Split and Group
   const finalAbsences = groupDataByDate(absenceHistory.filter(a => a.status === 'absent'));
   const finalTardies = groupDataByDate(absenceHistory.filter(a => a.status === 'late'));
-
-  console.log(finalAbsences)
-  console.log(finalTardies)
   const retardHistory = finalTardies
   const heureHistory = finalAbsences
   const totalInf = heureHistory.length + retardHistory.length

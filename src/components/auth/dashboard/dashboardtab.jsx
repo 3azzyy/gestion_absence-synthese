@@ -49,7 +49,6 @@ const DashboardTab = () => {
   const fetchWeeklyStats = async () => {
     try {
       const response = await api.get('/dashboard/stats');
-      console.log('Weekly stats response:', response.data);
       localStorage.setItem('statsData',JSON.stringify(response.data.data))
       return response.data.data;
     } catch (error) {

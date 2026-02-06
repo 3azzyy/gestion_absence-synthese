@@ -225,6 +225,7 @@ class AbsenceController extends Controller
             $end = Carbon::now()->endOfWeek()->toDateString();
             $period = 'Weekly Default';
         }
+        
 
         // 2. Aggregate Absences
         $absences = Absence::with(['student'])
@@ -243,14 +244,16 @@ class AbsenceController extends Controller
             // ->take(10) // Top 10 worst
             ->get();
 
-
-        $data = $absences->map(function ($abs) {
+        $data = $absences->map(function ($abs) use ($start, $end){
             $student = $abs->student;
 
             // Attach your calculated math directly to the student object
             $student->hours = $abs->total_hours * 2.5;
             $student->days_absent = ($abs->total_hours * 2.5) / 10;
-
+            
+            $student->absences = Absence::where('student_id', $student->id )
+                                ->whereBetween('date', [$start, $end])
+                                ->get();
             return $student;
         });
 

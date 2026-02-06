@@ -59,7 +59,7 @@ export const formatstudents = (students) => {
   return students.map(student => 
   {
     const sanction = sanctionLabel(student.hours / 10 , sanctionConfig);
-    
+
     return {
     ...student,
     id: student.id,
