@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import api from '../../../services/http';
 import { formatstudents } from '../../utils/calculation';
 import { DEFAULT_SANCTION_CONFIG } from '../../utils/constants';
+import { fetchWorstStudents } from '../../utils/storage';
 
 const StudentsTab = () => {
   const locate = useLocation();
@@ -21,25 +22,31 @@ const StudentsTab = () => {
     const pathSegments = locate.pathname.split('/');
     const classFromUrl = pathSegments[2] || "latest";
     setClasse(classFromUrl);
-
-    setGroups([])
+    fetchWorstStudents();
+    setGroups(JSON.parse(localStorage.getItem('classlist')));
   }, [locate.pathname]);
 
 
   useEffect(() => {
     const loadStudents = async () => {
       if (!classe) return;
-
+      
       setLoading(true);
-      try {
 
-        const targetUrl = classe === "latest" ? '/students' : `/students/classes/${classe}`;
+      try {
+        let formattedData = []
+        
+        if(classe === "latest"){
+          formattedData = formatstudents(JSON.parse(localStorage.getItem('worstData'))) 
+        }else{
+        const targetUrl = `/students/classes/${classe}`;
 
         const response = await api.get(targetUrl);
         const data = response.data.data || response.data;
 
 
-        const formattedData = formatstudents(data);
+        formattedData = formatstudents(data);
+        }
         setTrainees(formattedData);
         setFilTrainees(formattedData);
       } catch (error) {
@@ -79,9 +86,9 @@ const StudentsTab = () => {
   const handleGroupChange = (e) => {
     const newGroup = e.target.value;
     if (newGroup === "") {
-      navigate('/students/latest');
+      navigate('/view-students/latest');
     } else {
-      navigate(`/students/classes/${newGroup}`);
+      navigate(`/view-students/${newGroup}`);
     }
   };
 
@@ -99,8 +106,8 @@ const StudentsTab = () => {
             <label className="form-label">Filtrer par groupe</label>
 
             <select className="input" value={classe} onChange={handleGroupChange}>
-              <option value="">Tous les groupes</option>
-              {groups ? groups.map(g => <option key={g} value={g}>{g}</option>) : <option> rien </option>}
+              <option value="">Stagiaires À Surveiller Cette Semaine</option>
+              {groups ? groups.map(g => <option key={g.id} value={g.name}>{g.name}</option>) : <option> rien </option>}
             </select>
 
           </div>

@@ -23,7 +23,7 @@ const ClassFilterControls = ({
           onChange={(e) => setSearchInput(e.target.value)}
         />
         <select className="input" style={{width: '50%'}} value={yearFilter} onChange={(e) => setYearFilter(e.target.value)}>
-          <option disabled>Choissir l'année</option>
+          <option value="" >Tous Les Groups</option>
           <option value="1er année">1er année</option>
           <option value="2ème année">2ème année</option>
           {/* <option value="3ème année">3ème année</option> */}

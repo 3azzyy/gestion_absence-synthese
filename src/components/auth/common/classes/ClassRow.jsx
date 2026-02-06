@@ -18,7 +18,7 @@ const ClassRow = (props) => {
 
   
   return (<>
-   { yearLabel(classe) !== props.year ? null :
+
       <tr key={classe.id} >
         <td><strong>{classe.name}</strong></td>
         <td>{yearLabel(classe)}</td>
@@ -43,7 +43,7 @@ const ClassRow = (props) => {
           </button>
         </td>
       </tr >
-}
+
 </>);
 
 };

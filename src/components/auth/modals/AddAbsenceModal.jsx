@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, Calendar, Plus, Trash2, Clock, AlertCircle } from 'lucide-react';
+import { handleSaveAbsences } from '../../utils/storage';
 
 const AddAbsenceModal = ({ trainee, onClose, onSave }) => {
   const [absences, setAbsences] = useState([{
@@ -25,10 +26,10 @@ const AddAbsenceModal = ({ trainee, onClose, onSave }) => {
 
   // Séances 
 const seancesList = [
-  { key: 'seance1', label: 'Séance 1', time: '8h30 - 11h00', heures: 2.5 },
-  { key: 'seance2', label: 'Séance 2', time: '11h00 - 13h30', heures: 2.5 },
-  { key: 'seance3', label: 'Séance 3', time: '13h30 - 16h00', heures: 2.5 },
-  { key: 'seance4', label: 'Séance 4', time: '16h00 - 18h30', heures: 2.5 }
+  { key: 'seance1', label: 'Séance 1', time: '8h30 - 11h00', heures: 1 },
+  { key: 'seance2', label: 'Séance 2', time: '11h00 - 13h30', heures: 1 },
+  { key: 'seance3', label: 'Séance 3', time: '13h30 - 16h00', heures: 1 },
+  { key: 'seance4', label: 'Séance 4', time: '16h00 - 18h30', heures: 1 }
 ];
 
   // Ajouter une nouvelle absence
@@ -85,7 +86,7 @@ const calculateAbsenceHours = (absence) => {
   } else {
     // Compter les séances cochées et multiplier par 2.33 heures
     const seancesChecked = Object.values(absence.seances).filter(Boolean).length;
-    return seancesChecked * 2.5; // Chaque séance = 2h20min = 2.33h
+    return seancesChecked; // Chaque séance = 2h20min = 2.33h
   }
 };
   // Sauvegarder les absences
@@ -111,11 +112,11 @@ const calculateAbsenceHours = (absence) => {
       heuresRetard: a.mode === 'retard' ? parseFloat(a.heuresRetard) : null
     }));
 
-    onSave(trainee.id, { absences: formattedAbsences });
+    handleSaveAbsences(trainee.id, { absences: formattedAbsences });
     onClose();
   };
 
-  const totalHeures = absences.reduce((sum, a) => sum + calculateAbsenceHours(a), 0);
+  const totalHeures = absences.filter(a => a.mode === 'absence').reduce((sum, a) => sum + calculateAbsenceHours(a), 0);
   const totalRetards = absences.filter(a => a.mode === 'retard').length;
 
   return (
@@ -501,7 +502,7 @@ const calculateAbsenceHours = (absence) => {
                       color: '#0f172a',
                       border: '1px solid #e2e8f0'
                     }}>
-                      Total: {Object.values(absence.seances).filter(Boolean).length} séance(s) = {Object.values(absence.seances).filter(Boolean).length * 2}h
+                      Total: {Object.values(absence.seances).filter(Boolean).length} séance(s) = {Object.values(absence.seances).filter(Boolean).length * 2.5}h
                     </div>
                   </div>
                 </>
@@ -522,7 +523,7 @@ const calculateAbsenceHours = (absence) => {
               }}>
                 <span>Heures à ajouter:</span>
                 <span style={{ fontSize: '16px', color: '#dc2626' }}>
-                  {calculateAbsenceHours(absence).toFixed(2)}h
+                  {(calculateAbsenceHours(absence) * (absence?.mode === 'retard' ? 1 : 2.5)).toFixed(2)}h
                 </span>
               </div>
             </div>
@@ -545,7 +546,7 @@ const calculateAbsenceHours = (absence) => {
               Total heures
             </div>
             <div style={{ fontSize: '28px', fontWeight: 700 }}>
-              {totalHeures.toFixed(2)}h
+              {totalHeures.toFixed(2) * 2.5}h
             </div>
           </div>
           <div>

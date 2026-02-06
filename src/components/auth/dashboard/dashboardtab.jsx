@@ -14,13 +14,24 @@ const DashboardTab = () => {
   const [formattedWorstStudents, setFormattedWorstStudents] = useState([]);
   const [formattedTopStudents, setFormattedTopStudents] = useState([]);
 
+  useEffect(()=>{
+
+    const fetchall = async ()=> {
+      await fetchWeeklyStats();
+      await fetchTopStudents();
+      await fetchWorstStudents();
+    }
+
+    fetchall();
+  },[])
+
 
   useEffect(() => {
     const loadData = async () => {
       // Await the data from your functions
-      const statsData = await fetchWeeklyStats();
-      const worstData = await fetchWorstStudents();
-      const topData = await fetchTopStudents();
+      const statsData = 'statsData' in localStorage ? JSON.parse(localStorage.getItem("statsData")) : await fetchWeeklyStats();
+      const worstData = 'worstData' in localStorage ? JSON.parse(localStorage.getItem("worstData")) : await fetchWorstStudents();
+      const topData = 'topData' in localStorage ? JSON.parse(localStorage.getItem("topData")) : await fetchTopStudents();
 
       // Now update the states with actual data, not Promises
       setStats(statsData);
@@ -39,6 +50,7 @@ const DashboardTab = () => {
     try {
       const response = await api.get('/dashboard/stats');
       console.log('Weekly stats response:', response.data);
+      localStorage.setItem('statsData',JSON.stringify(response.data.data))
       return response.data.data;
     } catch (error) {
       console.error('Error fetching weekly stats:', error);
@@ -50,7 +62,8 @@ const DashboardTab = () => {
     try {
       const url = idclass ? `/dashboard/worst/${idclass}` : '/dashboard/worst';
       const response = await api.get(url);
-      return response.data;
+      localStorage.setItem('worstData',JSON.stringify(response.data.data))
+      return response.data.data;
     } catch (error) {
       console.error('Error fetching worst students:', error);
       return [];
@@ -61,6 +74,7 @@ const DashboardTab = () => {
     try {
       const url = idclass ? `/dashboard/best/${idclass}` : '/dashboard/best';
       const response = await api.get(url);
+      localStorage.setItem('topData',JSON.stringify(response.data.data))
       return response.data.data;
     } catch (error) {
       console.error('Error fetching top students:', error);
@@ -108,7 +122,7 @@ const DashboardTab = () => {
                 <div>
                   <strong>{i + 1}. {t.name}</strong>
                   <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                    {t.group} • {t.hours.toFixed(2)} heures
+                    {t.group} • {parseFloat(t.hours).toFixed(2)} heures
                   </div>
                 </div>
                 <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--success)' }}>
@@ -121,41 +135,41 @@ const DashboardTab = () => {
 
         <div className="card">
           <h2 className="card-header">Stagiaires À Surveiller Cette Semaine</h2>
-          {/* { worstStudents && worstStudents.length === 0 ? ( */}
+          { formattedWorstStudents && formattedWorstStudents.length === 0 ? (
           <p style={{ color: 'var(--text-muted)' }}>Aucune donnée</p>
-          {/* ) : ( ""
-            // worstStudents.map((t, i) => (
-            //   <div
-            //     key={t.id}
-            //     onClick={onViewStudent ? () => onViewStudent(t.id) : null}
-            //     style={{
-            //       padding: 12,
-            //       borderBottom: '1px solid var(--border)',
-            //       display: 'flex',
-            //       justifyContent: 'space-between',
-            //       alignItems: 'center',
-            //       cursor: onViewStudent ? 'pointer' : 'default',
-            //       transition: 'background 0.2s'
-            //     }}
-            //     onMouseEnter={(e) => {
-            //       if (onViewStudent) e.currentTarget.style.background = 'rgba(183,28,28,0.04)';
-            //     }}
-            //     onMouseLeave={(e) => {
-            //       if (onViewStudent) e.currentTarget.style.background = 'transparent';
-            //     }}
-            //   >
-            //     <div>
-            //       <strong>{i + 1}. {t.name}</strong>
-            //       <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-            //         {t.group} • {t.days.toFixed(2)} jours
-            //       </div>
-            //     </div>
-            //     <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--danger)' }}>
-            //       {t.attendance.toFixed(1)}/10
-            //     </div>
-            //   </div>
-            // ))
-          )} */}
+          ) : ( 
+            formattedWorstStudents.slice(0,5).map((t, i) => (
+              <div
+                key={t.id}
+                // onClick={onViewStudent ? () => onViewStudent(t.id) : null}
+                style={{
+                  padding: 12,
+                  borderBottom: '1px solid var(--border)',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  cursor: 'default',
+                  transition: 'background 0.2s'
+                }}
+                // onMouseEnter={(e) => {
+                //   if (onViewStudent) e.currentTarget.style.background = 'rgba(183,28,28,0.04)';
+                // }}
+                // onMouseLeave={(e) => {
+                //   if (onViewStudent) e.currentTarget.style.background = 'transparent';
+                // }}
+              >
+                <div>
+                  <strong>{i + 1}. {t.name}</strong>
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                    {t.group} • {t.days.toFixed(2)} jours
+                  </div>
+                </div>
+                <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--danger)' }}>
+                  {parseFloat(t.hours).toFixed(2)} heures
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 

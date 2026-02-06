@@ -41,9 +41,9 @@ return new class extends Migration
             $table->string('level')->nullable();
             $table->string('cin')->nullable();
             $table->string('email')->nullable();
-            $table->integer('hours')->default(0)->comment('Total absence hours');
+            $table->decimal('hours',11,2)->default(0)->comment('Total absence hours');
             $table->integer('tardies')->default(0)->comment('Total late count');
-            $table->integer('days_absent')->default(0)->comment('Total days absent');
+            $table->decimal('days_absent',11,2)->default(0)->comment('Total days absent');
             $table->integer('justified_absences')->default(0);
             $table->text('observation')->nullable();
             $table->string('class_group')->nullable();

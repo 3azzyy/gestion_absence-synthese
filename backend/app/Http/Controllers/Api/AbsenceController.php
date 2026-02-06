@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Log;
 
 class AbsenceController extends Controller
 {
@@ -214,39 +215,54 @@ class AbsenceController extends Controller
 
     public function WorstStg(Request $request, $id_classe = null)
     {
-        $query = Absence::query();
-
-        // If dates are provided, use them. Otherwise, default to this week.
-        if ($request->has('date_from') && $request->has('date_to')) {
-            $query->whereBetween('date', [$request->date_from, $request->date_to]);
+        // 1. Date Range Logic
+        if ($request->has(['date_from', 'date_to'])) {
+            $start = $request->date_from;
+            $end = $request->date_to;
+            $period = 'Custom Range';
         } else {
-            // Default: From Monday 00:00 to Sunday 23:59 of the current week
-            $startOfWeek = Carbon::now()->startOfWeek()->toDateString();
-            $endOfWeek = Carbon::now()->endOfWeek()->toDateString();
-            $query->whereBetween('date', [$startOfWeek, $endOfWeek]);
+            $start = Carbon::now()->startOfWeek()->toDateString();
+            $end = Carbon::now()->endOfWeek()->toDateString();
+            $period = 'Weekly Default';
         }
 
-        // Filter by class if provided in the URL or request
-        if ($id_classe) {
-            $query->whereHas('student', function ($q) use ($id_classe) {
-                $q->where('group_id', $id_classe);
-            });
-        }
-
-        $worstStudents = $query->select('student_id', DB::raw('SUM(duration) as total_hours'))
+        // 2. Aggregate Absences
+        $absences = Absence::with(['student'])
+            ->select('student_id')
+            ->selectRaw('SUM(duration) as total_hours') // Sum the hours
             ->where('status', 'absent')
+            ->whereBetween('date', [$start, $end])
+            // Filter by class if id_classe is provided
+            ->when($id_classe, function ($q) use ($id_classe) {
+                $q->whereHas('student', function ($sq) use ($id_classe) {
+                    $sq->where('class_group', $id_classe);
+                });
+            })
             ->groupBy('student_id')
-            ->orderBy('total_hours', 'desc') // 'desc' to get the most absent first
+            ->orderBy('total_hours', 'desc') // Worst (most absent) first
+            // ->take(10) // Top 10 worst
             ->get();
+
+
+        $data = $absences->map(function ($abs) {
+            $student = $abs->student;
+
+            // Attach your calculated math directly to the student object
+            $student->hours = $abs->total_hours * 2.5;
+            $student->days_absent = ($abs->total_hours * 2.5) / 10;
+
+            return $student;
+        });
 
         return response()->json([
             'success' => true,
             'meta' => [
-                'period' => 'Weekly Default',
-                'start' => $startOfWeek ?? $request->date_from,
-                'end' => $endOfWeek ?? $request->date_to
+                'period' => $period,
+                'start' => $start,
+                'end' => $end,
+                'class_id' => $id_classe
             ],
-            'data' => $worstStudents,
+            'data' => $data,
         ]);
     }
 }

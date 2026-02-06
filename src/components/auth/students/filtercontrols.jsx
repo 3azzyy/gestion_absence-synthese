@@ -21,7 +21,7 @@ const FilterControls = ({
         <label className="form-label">Filtrer par groupe</label>
         
         <select className="input" value={groupFilter} onChange={(e) => setGroupFilter(e.target.value)}>
-          <option value="">Tous les groupes</option>
+          <option value="">Stagiaires À Surveiller Cette Semaine</option>
           {groups.map(g => <option key={g} value={g}>{g}</option>)}
         
         </select>

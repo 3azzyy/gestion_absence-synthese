@@ -75,32 +75,38 @@ export default function App() {
   useEffect(() => {
     const session = getSession();
 
-    // const fetchTraineesFromDB = async (token) => {
-    //   try {
-    //     const response = await api.get('/students', {
-    //       headers: token ? { 'Authorization': `Bearer ${token}` } : {}
-    //     });
+    const fetchTraineesFromDB = async (token) => {
+      try {
+        // const response = await api.get('/students', {
+        //   headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        // });
 
-    //     const apiTrainees = response.data.data.data || response.data.data || [];
-    //     const formattedTrainees = {};
+        const response = {
+          data : {
+            data : []
+          }
+        }
 
-    //     apiTrainees.forEach(student => {
-    //       formattedTrainees[student.id] = {
-    //         ...student,
-    //         name: student.full_name,
-    //         heures: student.hours || 0,
-    //         retards: student.tardies || 0,
-    //         group: student.group?.name || student.class_group || 'Sans Groupe',
-    //         absenceHistory: student.absenceHistory || []
-    //       };
-    //     });
+        const apiTrainees = response.data.data.data || response.data.data || [];
+        const formattedTrainees = {};
 
-    //     setData({ trainees: formattedTrainees });
-    //   } catch (error) {
-    //     console.error("Erreur de récupération DB:", error);
-    //     setData({ trainees: {} });
-    //   }
-    // };
+        apiTrainees.forEach(student => {
+          formattedTrainees[student.id] = {
+            ...student,
+            name: student.full_name,
+            heures: student.hours || 0,
+            retards: student.tardies || 0,
+            group: student.group?.name || student.class_group || 'Sans Groupe',
+            absenceHistory: student.absenceHistory || []
+          };
+        });
+
+        setData({ trainees: formattedTrainees });
+      } catch (error) {
+        console.error("Erreur de récupération DB:", error);
+        setData({ trainees: {} });
+      }
+    };
 
     if (session && session.token) {
       axios.defaults.headers.common['Authorization'] = `Bearer ${session.token}`;
@@ -119,12 +125,12 @@ export default function App() {
   // LOGIQUE DE CALCUL ET FILTRAGE
   // =============================================
 
-  // const handleViewClass = (className) => {
-  //   setGroupFilter(className);
-  //   setSearchInput('');
-  //   setStatusFilter('');
-  //   setActiveTab('students');
-  // };
+  const handleViewClass = (className) => {
+    setGroupFilter(className);
+    setSearchInput('');
+    setStatusFilter('');
+    setActiveTab('students');
+  };
 
   const groups = [...new Set(Object.values(data.trainees).map(t => t.group))].sort();
 
@@ -202,6 +208,8 @@ export default function App() {
       setIsAuthenticated(false);
       setCurrentUser(null);
       setData({ trainees: {} });
+      localStorage.clear()
+      window.location.reload();
       showAlert('Déconnexion réussie', 'success');
     }
   };
@@ -236,49 +244,7 @@ export default function App() {
     showAlert('Stagiaire supprimé', 'success');
   };
 
-  const handleSaveAbsences = async (studentId, payload) => {
-    const statusMap = {
-      'justifiee': 'justified',
-      'non_justifiee': 'absent',
-      'retard': 'late',
-      'present': 'present'
-    };
-
-    // FIX: These must match your DB ENUM: S1, S2, S3, S4
-    const sessionMap = {
-      'seance1': 'S1',
-      'seance2': 'S2',
-      'seance3': 'S3',
-      'seance4': 'S4'
-    };
-
-    const formattedAbsences = payload.absences.map(abs => {
-      // Identify which checkbox was checked
-      const activeSessionKey = Object.keys(abs.seances || {}).find(key => abs.seances[key] === true);
-
-      return {
-        date: abs.date,
-        heures: abs.heures || 0,
-        isRetard: abs.isRetard || false,
-        status: statusMap[abs.type] || 'absent',
-        // Map 'seance1' to 'S1'
-        session: sessionMap[activeSessionKey] || null,
-        reason: abs.motif || null,
-        seances: abs.seances || {}
-      };
-    });
-
-    try {
-      await api.post(`/students/${studentId}/absences`, {
-        absences: formattedAbsences
-      });
-      showAlert('Absences enregistrées !', 'success');
-      window.location.reload();
-    } catch (error) {
-      console.error("Backend Error:", error.response?.data);
-      showAlert('Erreur: ' + (error.response?.data?.message || 'Erreur Serveur'), 'error');
-    }
-  };
+  
 
   const handleSaveSettings = (newSettings) => {
     setSettings(newSettings);
@@ -330,7 +296,7 @@ export default function App() {
           onDeleteClick={deleteTrainee}
           onExport={() => exportToCSV(getFilteredTrainees(), settings, sanctionConfig)}
           sanctionConfig={sanctionConfig}
-          onSaveAbsences={handleSaveAbsences}
+          // onSaveAbsences={handleSaveAbsences}
         />
 
         <AlertContainer alerts={alerts} />
@@ -379,7 +345,7 @@ export default function App() {
                 onDeleteClick={deleteTrainee}
                 onExport={() => exportToCSV(getFilteredTrainees(), settings, sanctionConfig)}
                 sanctionConfig={sanctionConfig}
-                onSaveAbsences={handleSaveAbsences}
+                // onSaveAbsences={handleSaveAbsences}
               />
             } />
 

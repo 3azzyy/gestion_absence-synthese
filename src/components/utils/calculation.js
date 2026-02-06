@@ -66,8 +66,8 @@ export const formatstudents = (students) => {
     cef : student.cef,
     sanction: sanction,
     name: student.full_name,
-    days: student.days_absent || 0,
-    heures: student.hours || 0,
+    days: parseFloat(student.days_absent) || 0,
+    heures: parseFloat(student.hours) || 0,
     retards: student.tardies || 0,
     attendance: Math.max(0, 10 - (student.hours) / 10), // Assuming 10 hours = 1 day
     group: student.group?.name || student.class_group || 'Sans Groupe',

@@ -11,21 +11,7 @@ const Header = ({
   onSanctionConfigClick,
   onBulkOperationsClick,
   onLogout,
-  trainees,
-  groups,
-  groupFilter,
-  setGroupFilter,
-  statusFilter,
-  setStatusFilter,
-  searchInput,
-  setSearchInput,
-  onAddClick,
-  onEditClick,
-  onDeleteClick,
-  onViewClick,
-  onExport,
   sanctionConfig,
-  onSaveAbsences
 }) => {
   // Safe extraction of display names to prevent "Cannot read properties of null" errors
   const displayName = currentUser?.fullName || currentUser?.name || currentUser?.username || 'Utilisateur';

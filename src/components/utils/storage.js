@@ -1,3 +1,4 @@
+import api from '../../services/http';
 import { DEFAULT_USERS } from './constants';
 import axios from 'axios';
 
@@ -246,3 +247,93 @@ export const deleteUserAPI = async (userId) => {
     return { success: false, error: error.response?.data?.message || 'Erreur de suppression' };
   }
 };
+
+
+
+/////////////////////////////////////////////////
+//absence 
+/////////////////////////////////////////////////
+export  const fetchWeeklyStats = async () => {
+    try {
+      const response = await api.get('/dashboard/stats');
+      console.log('Weekly stats response:', response.data);
+      localStorage.setItem('statsData',JSON.stringify(response.data.data))
+      return response.data.data;
+    } catch (error) {
+      console.error('Error fetching weekly stats:', error);
+      return { total: 0, atRisk: 0, totalHours: 0, totalDays: 0 };
+    }
+  };
+
+export  const fetchTopStudents = async (idclass) => {
+    try {
+      const url = idclass ? `/dashboard/best/${idclass}` : '/dashboard/best';
+      const response = await api.get(url);
+      localStorage.setItem('topData',JSON.stringify(response.data.data))
+      return response.data.data;
+    } catch (error) {
+      console.error('Error fetching top students:', error);
+      return [];
+    }
+  };
+
+export  const fetchWorstStudents = async (idclass) => {
+    try {
+      const url = idclass ? `/dashboard/worst/${idclass}` : '/dashboard/worst';
+      const response = await api.get(url);
+      localStorage.setItem('worstData',JSON.stringify(response.data.data))
+      return response.data.data;
+    } catch (error) {
+      console.error('Error fetching worst students:', error);
+      return [];
+    }
+  };
+
+export const handleSaveAbsences = async (studentId, payload) => {
+    const statusMap = {
+      'justifiee': 'justified',
+      'non_justifiee': 'absent',
+      'retard': 'late',
+      'present': 'present'
+    };
+
+    // FIX: These must match your DB ENUM: S1, S2, S3, S4
+    const sessionMap = {
+      'seance1': 'S1',
+      'seance2': 'S2',
+      'seance3': 'S3',
+      'seance4': 'S4'
+    };
+
+    const formattedAbsences = payload.absences.map(abs => {
+      // Identify which checkbox was checked
+      const activeSessionKey = Object.keys(abs.seances || {}).find(key => abs.seances[key] === true);
+
+      return {
+        date: abs.date,
+        heures: abs.heures || 0,
+        isRetard: abs.isRetard || false,
+        status: statusMap[abs.type] || 'absent',
+        // Map 'seance1' to 'S1'
+        session: sessionMap[activeSessionKey] || null,
+        reason: abs.motif || null,
+        seances: abs.seances || {}
+      };
+    });
+    
+    try {
+      await api.post(`/students/${studentId}/absences`, {
+        absences: formattedAbsences
+      });
+
+      fetchWeeklyStats();
+      fetchWorstStudents();
+      fetchTopStudents();
+
+      alert('Absences enregistrées !');
+      // window.location.reload();
+    } catch (error) {
+      console.error("Backend Error:", error.response?.data);
+      alert('Erreur: ' + (error.response?.data?.message || 'Erreur Serveur'));
+    }
+  };

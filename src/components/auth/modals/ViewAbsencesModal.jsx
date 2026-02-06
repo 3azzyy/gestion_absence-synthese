@@ -10,9 +10,52 @@ const ViewAbsencesModal = ({ trainee, onClose }) => {
 
 
   // Récupérer l'historique des absences
-  const absenceHistory = trainee.data?.absences || [];
-  const retardHistory = absenceHistory.filter(a => a.status === 'late');
-  const heureHistory = absenceHistory.filter(a => a.status === 'absent');
+  const absenceHistory = trainee.absences || [];
+  console.log(absenceHistory)
+
+  // 1. Helper function to avoid repeating the grouping logic
+  const groupDataByDate = (data) => {
+    const grouped = Object.values(data.reduce((acc, current) => {
+      const dateKey = current.date.split('T')[0];
+
+      if (!acc[dateKey]) {
+        acc[dateKey] = {
+          date: dateKey,
+          sessions: [],
+          total_hours: 0,
+          status: current.status // Storing type for badge coloring
+        };
+      }
+
+      // Add session name if it's not a duplicate for that day
+      if (!acc[dateKey].sessions.includes(current.session)) {
+        acc[dateKey].sessions.push(current.session);
+      }
+
+      // Accumulate actual duration
+      acc[dateKey].total_duration += parseFloat(current.duration || 0);
+
+      return acc;
+    }, {}));
+
+    // Format the joined names and counts
+    return grouped.map(item => ({
+      ...item,
+      session: item.sessions.join(', '),
+      duration: item.sessions.length
+    }));
+  };
+
+  // 2. Split and Group
+  const finalAbsences = groupDataByDate(absenceHistory.filter(a => a.status === 'absent'));
+  const finalTardies = groupDataByDate(absenceHistory.filter(a => a.status === 'late'));
+
+  console.log(finalAbsences)
+  console.log(finalTardies)
+  const retardHistory = finalTardies
+  const heureHistory = finalAbsences
+  const totalInf = heureHistory.length + retardHistory.length
+
 
 
   return (
@@ -71,7 +114,7 @@ const ViewAbsencesModal = ({ trainee, onClose }) => {
                 Assiduité
               </div>
               <div style={{ fontWeight: 700, fontSize: '24px' }}>
-                {trainee.attendance.toFixed(1)}/10
+                {trainee.attendance.toFixed(2)}/10
               </div>
             </div>
           </div>
@@ -92,7 +135,7 @@ const ViewAbsencesModal = ({ trainee, onClose }) => {
             textAlign: 'center'
           }}>
             <div style={{ fontSize: '32px', fontWeight: 700, color: '#f57c00' }}>
-              {absenceHistory.length}
+              {totalInf}
             </div>
             <div style={{ fontSize: '13px', color: '#856404', fontWeight: 600 }}>
               Total Infraction
@@ -109,7 +152,7 @@ const ViewAbsencesModal = ({ trainee, onClose }) => {
               {heureHistory.length}
             </div>
             <div style={{ fontSize: '13px', color: '#721c24', fontWeight: 600 }}>
-              Absences 
+              Absences
             </div>
           </div>
           <div style={{
@@ -264,8 +307,8 @@ const ViewAbsencesModal = ({ trainee, onClose }) => {
                       <tr>
                         <th>Date</th>
                         <th>Type</th>
-                        <th>Durée</th>
-                        <th>Statut</th>
+                        <th>Session</th>
+
                       </tr>
                     </thead>
                     <tbody>
@@ -292,21 +335,6 @@ const ViewAbsencesModal = ({ trainee, onClose }) => {
                                 fontSize: '12px',
                                 fontWeight: 700,
                                 color: 'white',
-                                background: absenceTypes.find(t => t.value === abs.type)?.color,
-                                textTransform: 'uppercase',
-                                letterSpacing: '0.5px'
-                              }}>
-                                {absenceTypes.find(t => t.value === abs.type)?.label}
-                              </span>
-                            </td>
-                            <td>
-                              <span style={{
-                                display: 'inline-block',
-                                padding: '6px 12px',
-                                borderRadius: '12px',
-                                fontSize: '12px',
-                                fontWeight: 700,
-                                color: 'white',
                                 background: 'var(--warning)',
                                 textTransform: 'uppercase',
                                 letterSpacing: '0.5px'
@@ -314,6 +342,17 @@ const ViewAbsencesModal = ({ trainee, onClose }) => {
                                 RETARD
                               </span>
                             </td>
+                            <td>
+                              <span style={{
+                                fontWeight: 600,
+                                fontSize: '16px',
+                                color: 'var(--danger)'
+                              }}
+                              >
+                                {abs.session || 'N/A'}
+                              </span>
+                            </td>
+                            
                           </tr>
                         ))}
                     </tbody>

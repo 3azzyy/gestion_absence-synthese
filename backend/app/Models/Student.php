@@ -27,9 +27,9 @@ class Student extends Model
     ];
 
     protected $casts = [
-        'hours' => 'integer',
+        'hours' => 'decimal:2',
         'tardies' => 'integer',
-        'days_absent' => 'integer',
+        'days_absent' => 'decimal:2',
         'justified_absences' => 'integer',
     ];
 

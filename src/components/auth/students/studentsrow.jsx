@@ -38,7 +38,7 @@ const StudentRow = ({ trainee }) => {
             }}
           />
         </div> */}
-        {t.attendance.toFixed(1)}/10
+        {t.attendance.toFixed(2)}/10
       </td>
       <td>
         <span 
@@ -67,22 +67,25 @@ const StudentRow = ({ trainee }) => {
     </tr>
 
 
-      {/* Modal d'ajout d'absences */}
-      {showAbsenceModal && selectedTrainee && (
-        <AddAbsenceModal
-          trainee={selectedTrainee}
-          onClose={() => setShowAbsenceModal(false)}
-          // onSave={onSaveAbsences}
-        />
-      )}
-
-      {/* Modal de visualisation des absences */}
-      {showViewModal && selectedTrainee && (
-        <ViewAbsencesModal
-          trainee={selectedTrainee}
-          onClose={() => setShowViewModal(false)}
-        />
-      )}
+      {/* Modal Row */}
+    {(showAbsenceModal || showViewModal) && (
+      <tr>
+        <td colSpan="8" style={{ padding: 0, border: 0 }}>
+          {showAbsenceModal && (
+            <AddAbsenceModal
+              trainee={selectedTrainee}
+              onClose={() => setShowAbsenceModal(false)}
+            />
+          )}
+          {showViewModal && (
+            <ViewAbsencesModal
+              trainee={selectedTrainee}
+              onClose={() => setShowViewModal(false)}
+            />
+          )}
+        </td>
+      </tr>
+    )}
       </>
   );
 };
