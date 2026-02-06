@@ -35,7 +35,7 @@ const TabsNavigation = ({ currentUser }) => {
             <Shield size={16} style={iconStyle} /> Utilisateurs
           </NavLink>
           
-          <NavLink to="/absences" className={({ isActive }) => `tab ${isActive ? 'active' : ''}`}>
+          <NavLink to="/absence-history" className={({ isActive }) => `tab ${isActive ? 'active' : ''}`}>
             <Pen size={16} style={iconStyle} /> Absences
           </NavLink>
         </>

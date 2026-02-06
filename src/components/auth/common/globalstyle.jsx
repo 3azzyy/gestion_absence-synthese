@@ -114,6 +114,7 @@ const GlobalStyles = () => (
     .tabs { display: flex; gap: 4px; margin-bottom: 24px; border-bottom: 2px solid var(--border); overflow-x: auto; }
 
     .tab {
+      text-decoration:none;
       padding: 12px 20px;
       background: transparent;
       border: none;

@@ -25,6 +25,7 @@ import BackupModal from './components/auth/modals/backupmodal.jsx';
 import { DEFAULT_SANCTION_CONFIG } from './components/utils/constants';
 import { calculateDays, sanctionLabel, exportToCSV } from './components/utils/calculation';
 import { getSession, authenticateUser, clearSession } from './components/utils/storage';
+import Absence from './components/auth/absences/absencestab.jsx';
 
 // Configuration Axios par défaut
 axios.defaults.baseURL = 'http://127.0.0.1:8000';
@@ -360,14 +361,18 @@ export default function App() {
             } />
 
             {/* Admin: User Management */}
-            {currentUser?.role === 'admin' && (
+            {currentUser?.role === 'admin' && (<>
               <Route path="/users" element={
                 <UserManagement
                   currentUser={currentUser}
                   showAlert={showAlert}
                 />
               } />
-            )}
+
+              <Route path="/absence-history" element={
+                <Absence />
+              } />
+            </>)}
 
             {/* Fallback for 404s */}
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
