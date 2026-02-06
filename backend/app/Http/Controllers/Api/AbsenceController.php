@@ -16,6 +16,7 @@ class AbsenceController extends Controller
     public function index(Request $request)
     {
         $query = Absence::with(['student', 'creator']);
+        Log::info("req" . $request);
 
         // Date range filter
         if ($request->filled(['date_from', 'date_to'])) {
@@ -28,13 +29,15 @@ class AbsenceController extends Controller
         }
 
         // Group filter
-        if ($request->has('group')) {
-            $query->byGroup($request->group);
+        if ($request->filled('group')) {
+            $query->whereHas('student', function ($q) use ($request) {
+                $q->where('class_group', 'like', '%' . $request->group . '%');
+            });
         }
 
         // Status filter
         if ($request->has('status')) {
-            $query->byStatus($request->status);
+            $query->where('status', 'like', $request->status);
         }
 
         // Session filter

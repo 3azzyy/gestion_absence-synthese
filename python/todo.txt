@@ -18,4 +18,4 @@ add impression in view absence
 move analitics to dashboard (maybe)
 api calls filtered by groups and year
 
-add absence historique 
+/add absence historique 

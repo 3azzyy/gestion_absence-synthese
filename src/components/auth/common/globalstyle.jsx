@@ -237,7 +237,6 @@ const GlobalStyles = () => (
       border-radius: var(--radius);
       color: white;
       box-shadow: var(--shadow);
-      cursor: pointer;
       transition: transform 0.2s ease;
     }
 

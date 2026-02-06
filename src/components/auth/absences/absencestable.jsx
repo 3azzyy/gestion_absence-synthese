@@ -43,6 +43,7 @@ export default function AbsenceTable({absences}) {
                         absences.map(abs => (
                             <AbsenceRow
                                 key={abs.id}
+                                ids={abs.id}
                                 abs={abs}
                             />
                         ))

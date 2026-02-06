@@ -14,12 +14,18 @@ export default function Absence() {
     total: 0
   });
 
+  const getMonday = () => {
+    const today = new Date();
+    const day = today.getDay(); // 0 is Sunday, 1 is Monday...
+    const diff = today.getDate() - day + (day === 0 ? -6 : 1); // Adjust to get Monday
+    return new Date(today.setDate(diff)).toISOString().split('T')[0];
+  };
+
   const [filters, setFilters] = useState({
-    // Default to a wide range to ensure data shows up during testing
-    date_from: "2026-01-01",
-    date_to: new Date().toISOString().split('T')[0],
-    // status: "absent",
-    // group: "", 
+    date_from: getMonday(), // Points to this Monday
+    date_to: new Date().toISOString().split('T')[0], // Points to today
+    status: "",
+    group: "",
     input: ""
   });
 
@@ -35,8 +41,8 @@ export default function Absence() {
         const params = {
           date_from: filters.date_from,
           date_to: filters.date_to,
-          status: filters.status,
-          group: filters.group,
+          status: filters.status !== "" ? filters.status : null,
+          group: filters.group !== "" ? filters.group : null,
           page: pagination.current
         };
 
@@ -69,12 +75,23 @@ export default function Absence() {
     { label: 'Justifié', value: 'justified' }
   ];
 
+  const handlereset = () => {
+    setFilters({
+      date_from: getMonday(), // Points to this Monday
+      date_to: new Date().toISOString().split('T')[0], // Points to today
+      status: "",
+      group: "",
+      input: ""
+    })
+  }
+
   let displayedData = []
+
   if (filters.input !== "") {
     displayedData = absences.filter(abs =>
-      abs.student?.name?.toLowerCase().includes(filters.input.toLowerCase())
+      abs.student?.full_name?.toLowerCase().includes(filters.input.toLowerCase())
     );
-  }else displayedData = absences
+  } else displayedData = absences
 
   return (
     <div className="absence-container">
@@ -139,6 +156,7 @@ export default function Absence() {
             />
           </div>
         </div>
+        <button onClick={() => handlereset()}>Remetter a nouveau</button>
       </div>
 
       <div className="card" style={{ marginTop: '20px' }}>

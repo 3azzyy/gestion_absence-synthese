@@ -86,8 +86,8 @@ const DashboardTab = () => {
       <div className="stats-grid">
         <StatCard label="Total Stagiaires" value={stats?.total} />
         <StatCard label="À Risque" value={stats?.atRisk} />
-        <StatCard label="Total Heures" value={stats?.totalHours?.toFixed(1) || 0} />
-        <StatCard label="Total Jours" value={stats?.totalDays?.toFixed(1) || 0} />
+        <StatCard label="Total Heures" value={stats?.totalHours?.toFixed(2) || 0} />
+        <StatCard label="Total Jours" value={stats?.totalDays?.toFixed(2) || 0} />
         <StatCard label="Taux Absence Moyen" value={avgAttendance || 0} />
       </div>
 

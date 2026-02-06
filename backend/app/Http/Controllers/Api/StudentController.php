@@ -136,8 +136,8 @@ class StudentController extends Controller
             'data' => [
                 'total' => $total,
                 'atRisk' => $atRisk,
-                'totalHours' => $totalHours / 1,
-                'totalDays' => $totalHours / 10,
+                'totalHours' => $totalHours * 2.5 / 1,
+                'totalDays' => $totalHours * 2.5 / 10,
             ]
         ]);
     }
