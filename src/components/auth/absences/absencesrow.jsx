@@ -1,28 +1,38 @@
 import { Eye, Pen, Plus, Trash2 } from "lucide-react"
 import api from "../../../services/http"
+import EditAbs from "./absenceeditmodale"
+import { useState } from "react"
 
 export default function AbsenceRow({ ids, abs }) {
-
+    const [showAbsenceModal , setShowAbsenceModal] = useState(false)
 
     const handlestatus = (status) => {
+        
         if (status == "absent") return { text: "Absence", color: "#ff000066" }
         if (status == "late") return { text: "Retard", color: "#ff7539e7" }
         return { text: "Absence Justifier", color: "#80ff9d8c" }
+
     }
 
+    
+    
+    
     const handleDelete = async (id) => {
-
+        
         const conf = confirm('etes vous sure que vous vouler supprimer cetter absence');
+        
         if (conf) {
+        
             const res = await api.delete(`absences/${id}`)
+        
             if (res.data.success){
                alert(res.data.message) 
                window.location.reload()
             } 
             else console.log(res)
             return;
+        
         } else return;
-
 
     }
 
@@ -51,7 +61,7 @@ export default function AbsenceRow({ ids, abs }) {
                 gap: "5px",
                 justifyContent: "center",
             }}>
-                <button className="btn btn-sm btn-secondary" onClick={() => handleModAbsence(abs)} style={{ marginLeft: 4 }}>
+                <button className="btn btn-sm btn-secondary" onClick={() => setShowAbsenceModal(true)} style={{ marginLeft: 4 }}>
                     <Pen size={14} />
                 </button>
                 {/* <span></span> */}
@@ -63,11 +73,21 @@ export default function AbsenceRow({ ids, abs }) {
                 </button>
             </td>
         </tr>
-
-
-
-
-
+        
+        {/* Modal Row */}
+    {(showAbsenceModal && 
+      <tr>
+        <td colSpan="8" style={{ padding: 0, border: 0 }}>
+          {showAbsenceModal && (
+            <EditAbs
+              ABS ={abs}
+              CLOSE={() => setShowAbsenceModal(false)}
+              sts = {handlestatus}
+            />
+          )}
+        </td>
+      </tr>
+    )}
     </>
 
 
