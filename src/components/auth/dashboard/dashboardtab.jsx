@@ -165,8 +165,8 @@ const DashboardTab = () => {
                   <td class="rank">${index + 1}</td>
                   <td><strong>${student.name}</strong></td>
                   <td class="group">${student.group}</td>
-                  <td>${parseFloat(student.heures).toFixed(2)} heures</td>
-                  <td class="score" style="text-align: right;">${student.attendance.toFixed(1)}/10</td>
+                  <td>${student.heures} heures</td>
+                  <td class="score" style="text-align: right;">${student.attendance.toFixed(2)}/10</td>
                 </tr>
               `).join('')}
             </tbody>
@@ -269,7 +269,7 @@ const DashboardTab = () => {
                   <td><strong>${student.name}</strong></td>
                   <td class="group">${student.group}</td>
                   <td>${student.days.toFixed(2)} jours</td>
-                  <td class="hours" style="text-align: right;">${parseFloat(student.heures).toFixed(2)} heures</td>
+                  <td class="hours" style="text-align: right;">${student.heures} heures</td>
                 </tr>
               `).join('')}
             </tbody>

@@ -16,7 +16,7 @@ class AbsenceController extends Controller
     public function index(Request $request)
     {
         $query = Absence::with(['student', 'creator']);
-        Log::info("req" . $request);
+
 
         // Date range filter
         if ($request->filled(['date_from', 'date_to'])) {
