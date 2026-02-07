@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Eye } from 'lucide-react';
+import { Eye, Printer } from 'lucide-react';
 import StatCard from './StatCard';
 import axios from 'axios';
 import api from '../../../services/http';
@@ -81,6 +81,212 @@ const DashboardTab = () => {
     }
   };
 
+  const handlePrintTopStudents = () => {
+    const printWindow = window.open('', '', 'width=800,height=600');
+    
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Meilleurs Stagiaires</title>
+          <style>
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              padding: 40px;
+              color: #1a1a1a;
+            }
+            h1 {
+              font-size: 24px;
+              margin-bottom: 10px;
+              color: #1a1a1a;
+            }
+            .date {
+              font-size: 14px;
+              color: #666;
+              margin-bottom: 30px;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-top: 20px;
+            }
+            th {
+              background-color: #f5f5f5;
+              padding: 12px;
+              text-align: left;
+              font-weight: 600;
+              border-bottom: 2px solid #ddd;
+            }
+            td {
+              padding: 12px;
+              border-bottom: 1px solid #eee;
+            }
+            tr:hover {
+              background-color: #fafafa;
+            }
+            .rank {
+              font-weight: 700;
+              color: #3a7ca5;
+            }
+            .score {
+              font-weight: 700;
+              color: #16a34a;
+              font-size: 16px;
+            }
+            .group {
+              color: #666;
+              font-size: 14px;
+            }
+            @media print {
+              body { padding: 20px; }
+            }
+          </style>
+        </head>
+        <body>
+          <h1>Meilleurs Stagiaires</h1>
+          <div class="date">${new Date().toLocaleDateString('fr-FR', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+          })}</div>
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 60px;">Rang</th>
+                <th>Nom</th>
+                <th>Groupe</th>
+                <th>Heures</th>
+                <th style="width: 100px; text-align: right;">Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${formattedTopStudents.map((student, index) => `
+                <tr>
+                  <td class="rank">${index + 1}</td>
+                  <td><strong>${student.name}</strong></td>
+                  <td class="group">${student.group}</td>
+                  <td>${parseFloat(student.heures).toFixed(2)} heures</td>
+                  <td class="score" style="text-align: right;">${student.attendance.toFixed(1)}/10</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </body>
+      </html>
+    `;
+    
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 250);
+  };
+
+  const handlePrintWorstStudents = () => {
+    const printWindow = window.open('', '', 'width=800,height=600');
+    
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Stagiaires À Surveiller</title>
+          <style>
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              padding: 40px;
+              color: #1a1a1a;
+            }
+            h1 {
+              font-size: 24px;
+              margin-bottom: 10px;
+              color: #1a1a1a;
+            }
+            .date {
+              font-size: 14px;
+              color: #666;
+              margin-bottom: 30px;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-top: 20px;
+            }
+            th {
+              background-color: #f5f5f5;
+              padding: 12px;
+              text-align: left;
+              font-weight: 600;
+              border-bottom: 2px solid #ddd;
+            }
+            td {
+              padding: 12px;
+              border-bottom: 1px solid #eee;
+            }
+            tr:hover {
+              background-color: #fafafa;
+            }
+            .rank {
+              font-weight: 700;
+              color: #3a7ca5;
+            }
+            .hours {
+              font-weight: 700;
+              color: #dc2626;
+              font-size: 16px;
+            }
+            .group {
+              color: #666;
+              font-size: 14px;
+            }
+            @media print {
+              body { padding: 20px; }
+            }
+          </style>
+        </head>
+        <body>
+          <h1>Stagiaires À Surveiller Cette Semaine</h1>
+          <div class="date">${new Date().toLocaleDateString('fr-FR', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+          })}</div>
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 60px;">Rang</th>
+                <th>Nom</th>
+                <th>Groupe</th>
+                <th>Jours d'absence</th>
+                <th style="width: 120px; text-align: right;">Heures</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${formattedWorstStudents.map((student, index) => `
+                <tr>
+                  <td class="rank">${index + 1}</td>
+                  <td><strong>${student.name}</strong></td>
+                  <td class="group">${student.group}</td>
+                  <td>${student.days.toFixed(2)} jours</td>
+                  <td class="hours" style="text-align: right;">${parseFloat(student.heures).toFixed(2)} heures</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </body>
+      </html>
+    `;
+    
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 250);
+  };
+
   return (
     <>
       <div className="stats-grid">
@@ -93,7 +299,16 @@ const DashboardTab = () => {
 
       <div className="grid-2">
         <div className="card">
-          <h2 className="card-header">Meilleurs Stagiaires</h2>
+          <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'nowrap', gap: '12px' }}>
+            <h2 style={{ margin: 0, whiteSpace: 'nowrap', overflow: 'visible', flexShrink: 0, fontSize: '18px' }}>Meilleurs Stagiaires</h2>
+            <button 
+              className="btn btn-sm" 
+              onClick={handlePrintTopStudents}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}
+            >
+              <Printer size={14} /> Imprimer
+            </button>
+          </div>
           
           {formattedTopStudents && formattedTopStudents?.length === 0 ? ( 
             <p style={{ color: 'var(--text-muted)' }}>Aucune donnée</p>
@@ -101,27 +316,19 @@ const DashboardTab = () => {
              formattedTopStudents.slice(0,5).map((t, i) => (
               <div
                 key={t.id}
-                // onClick={onViewStudent ? () => onViewStudent(t.id) : null}
                 style={{
                   padding: 12,
                   borderBottom: '1px solid var(--border)',
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  // cursor: onViewStudent ? 'pointer' : 'default',
                   transition: 'background 0.2s'
                 }}
-                // onMouseEnter={(e) => {
-                //   if (onViewStudent) e.currentTarget.style.background = 'rgba(58,124,165,0.04)';
-                // }}
-                // onMouseLeave={(e) => {
-                //   if (onViewStudent) e.currentTarget.style.background = 'transparent';
-                // }}
               >
                 <div>
                   <strong>{i + 1}. {t.name}</strong>
                   <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                    {t.group} • {parseFloat(t.hours).toFixed(2)} heures
+                    {t.group} • {parseFloat(t.heures).toFixed(2)} heures
                   </div>
                 </div>
                 <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--success)' }}>
@@ -133,14 +340,23 @@ const DashboardTab = () => {
         </div>
 
         <div className="card">
-          <h2 className="card-header">Stagiaires À Surveiller Cette Semaine</h2>
+          <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'nowrap', gap: '12px' }}>
+            <h2 style={{ margin: 0, whiteSpace: 'nowrap', overflow: 'visible', flexShrink: 0, fontSize: '18px' }}>Stagiaires À Surveiller Cette Semaine</h2>
+            <button 
+              className="btn btn-sm" 
+              onClick={handlePrintWorstStudents}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}
+            >
+              <Printer size={14} /> Imprimer
+            </button>
+          </div>
+          
           { formattedWorstStudents && formattedWorstStudents.length === 0 ? (
           <p style={{ color: 'var(--text-muted)' }}>Aucune donnée</p>
           ) : ( 
             formattedWorstStudents.slice(0,5).map((t, i) => (
               <div
                 key={t.id}
-                // onClick={onViewStudent ? () => onViewStudent(t.id) : null}
                 style={{
                   padding: 12,
                   borderBottom: '1px solid var(--border)',
@@ -150,12 +366,6 @@ const DashboardTab = () => {
                   cursor: 'default',
                   transition: 'background 0.2s'
                 }}
-                // onMouseEnter={(e) => {
-                //   if (onViewStudent) e.currentTarget.style.background = 'rgba(183,28,28,0.04)';
-                // }}
-                // onMouseLeave={(e) => {
-                //   if (onViewStudent) e.currentTarget.style.background = 'transparent';
-                // }}
               >
                 <div>
                   <strong>{i + 1}. {t.name}</strong>
@@ -164,34 +374,13 @@ const DashboardTab = () => {
                   </div>
                 </div>
                 <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--danger)' }}>
-                  {parseFloat(t.hours).toFixed(2)} heures
+                  {parseFloat(t.heures).toFixed(2)} heures
                 </div>
               </div>
             ))
           )}
         </div>
       </div>
-
-      {/* <div className="card">
-        <h2 className="card-header">Alertes et Avertissements</h2>
-        {warnings.length === 0 ? (
-          <div className="alert alert-success">✓ Aucune alerte pour le moment</div>
-        ) : (
-          warnings.map(t => (
-            <div key={t.id} className={`alert alert-${t.days >= 5 ? 'danger' : 'warning'}`}>
-              <div style={{flex: 1}}>
-                <strong>{t.name}</strong> — {t.days.toFixed(2)} jours d'absence — {t.sanction.label}
-                <br/><small>Action requise: {t.sanction.action}</small>
-              </div>
-              {onViewStudent && (
-                <button className="btn btn-sm" onClick={() => onViewStudent(t.id)}>
-                  <Eye size={14} /> Voir
-                </button>
-              )}
-            </div>
-          ))
-        )}
-      </div> */}
     </>
   );
 };
