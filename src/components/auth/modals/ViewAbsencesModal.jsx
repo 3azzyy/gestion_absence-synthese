@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Calendar, Clock } from 'lucide-react';
+import { X, Calendar, Clock, Printer } from 'lucide-react';
 
 const ViewAbsencesModal = ({ trainee, onClose }) => {
   const absenceTypes = [
@@ -52,16 +52,372 @@ const ViewAbsencesModal = ({ trainee, onClose }) => {
   const heureHistory = finalAbsences
   const totalInf = heureHistory.length + retardHistory.length
 
+  // Fonction pour imprimer l'historique
+  const handlePrint = () => {
+    if (absenceHistory.length === 0) {
+      alert('Aucun historique à imprimer');
+      return;
+    }
 
+    const printWindow = window.open('', '_blank');
+    
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Historique des Absences - ${trainee.name}</title>
+          <style>
+            * {
+              margin: 0;
+              padding: 0;
+              box-sizing: border-box;
+            }
+            
+            body {
+              font-family: Arial, sans-serif;
+              padding: 30px;
+              background: white;
+            }
+            
+            .header {
+              background: #000000;
+              color: white;
+              padding: 25px;
+              margin: -30px -30px 30px -30px;
+              text-align: center;
+            }
+            
+            h1 {
+              font-size: 24px;
+              margin-bottom: 8px;
+            }
+            
+            .date-generated {
+              font-size: 13px;
+              opacity: 0.9;
+            }
+            
+            .trainee-info {
+              background: #f5f5f5;
+              border: 2px solid #000000;
+              border-radius: 8px;
+              padding: 24px;
+              margin-bottom: 25px;
+              display: grid;
+              grid-template-columns: repeat(5, 1fr);
+              gap: 20px;
+            }
+            
+            .info-item {
+              text-align: center;
+            }
+            
+            .info-label {
+              font-size: 11px;
+              color: #666666;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+              margin-bottom: 6px;
+            }
+            
+            .info-value {
+              font-size: 18px;
+              font-weight: 700;
+              color: #000000;
+            }
+            
+            .info-value.large {
+              font-size: 24px;
+            }
+            
+            .stats {
+              display: grid;
+              grid-template-columns: repeat(3, 1fr);
+              gap: 16px;
+              margin-bottom: 25px;
+            }
+            
+            .stat-card {
+              padding: 16px;
+              border-radius: 8px;
+              text-align: center;
+              border: 2px solid #000000;
+              background: #ffffff;
+            }
+            
+            .stat-value {
+              font-size: 32px;
+              font-weight: 700;
+              margin-bottom: 5px;
+              color: #000000;
+            }
+            
+            .stat-label {
+              font-size: 13px;
+              font-weight: 600;
+              color: #333333;
+            }
+            
+            h2 {
+              font-size: 18px;
+              margin: 30px 0 16px 0;
+              color: #000000;
+              padding-bottom: 12px;
+              border-bottom: 2px solid #000000;
+              display: flex;
+              align-items: center;
+              gap: 8px;
+            }
+            
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-bottom: 30px;
+              border: 2px solid #000000;
+            }
+            
+            th, td {
+              border: 1px solid #000000;
+              padding: 12px 10px;
+              text-align: center;
+            }
+            
+            th {
+              background-color: #000000;
+              color: white;
+              font-weight: bold;
+              font-size: 12px;
+              text-transform: uppercase;
+            }
+            
+            tr:nth-child(even) {
+              background-color: #f5f5f5;
+            }
+            
+            td {
+              font-size: 13px;
+              color: #000000;
+            }
+            
+            .badge {
+              display: inline-block;
+              padding: 6px 12px;
+              border: 2px solid #000000;
+              background: #ffffff;
+              border-radius: 12px;
+              font-size: 12px;
+              font-weight: 700;
+              color: #000000;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+            }
+            
+            .hours {
+              font-weight: 700;
+              font-size: 16px;
+              color: #000000;
+            }
+            
+            .session {
+              font-weight: 600;
+              font-size: 16px;
+              color: #000000;
+            }
+            
+            .footer {
+              text-align: center;
+              font-size: 11px;
+              color: #64748b;
+              font-style: italic;
+              margin-top: 30px;
+              padding-top: 20px;
+              border-top: 1px solid #e2e8f0;
+            }
+            
+            @media print {
+              body {
+                padding: 15px;
+              }
+              
+              .header {
+                margin: -15px -15px 20px -15px;
+              }
+              
+              table {
+                page-break-inside: auto;
+              }
+              
+              tr {
+                page-break-inside: avoid;
+                page-break-after: auto;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>Historique des Absences</h1>
+            <div class="date-generated">
+              Généré le ${new Date().toLocaleDateString('fr-FR', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })}
+            </div>
+          </div>
+          
+          <div class="trainee-info">
+            <div class="info-item">
+              <div class="info-label">Nom Complet</div>
+              <div class="info-value">${trainee.name}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Groupe</div>
+              <div class="info-value">${trainee.group}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Total Heures</div>
+              <div class="info-value large">${trainee.heures.toFixed(1)} h</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Total Retards</div>
+              <div class="info-value large">${trainee.retards}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Assiduité</div>
+              <div class="info-value large">${trainee.attendance.toFixed(2)}/10</div>
+            </div>
+          </div>
+          
+          <div class="stats">
+            <div class="stat-card">
+              <div class="stat-value">${totalInf}</div>
+              <div class="stat-label">Total Infractions</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">${heureHistory.length}</div>
+              <div class="stat-label">Absences</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">${retardHistory.length}</div>
+              <div class="stat-label">Retards</div>
+            </div>
+          </div>
+          
+          ${heureHistory.length > 0 ? `
+            <h2>📅 Absences par Heures (${heureHistory.length})</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Type</th>
+                  <th>Session</th>
+                  <th>Heures</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${heureHistory
+                  .sort((a, b) => new Date(b.date) - new Date(a.date))
+                  .map(abs => `
+                    <tr>
+                      <td><strong>${new Date(abs.date).toLocaleDateString('fr-FR', {
+                        weekday: 'short',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}</strong></td>
+                      <td>
+                        <span class="badge">ABSENCE</span>
+                      </td>
+                      <td>
+                        <span class="session">${abs.session || 'N/A'}</span>
+                      </td>
+                      <td>
+                        <span class="hours">${abs.status === 'absent' ? abs.duration * 2.5 : abs.duration} h</span>
+                      </td>
+                    </tr>
+                  `).join('')}
+              </tbody>
+            </table>
+          ` : ''}
+          
+          ${retardHistory.length > 0 ? `
+            <h2>⏰ Retards (${retardHistory.length})</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Type</th>
+                  <th>Session</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${retardHistory
+                  .sort((a, b) => new Date(b.date) - new Date(a.date))
+                  .map(abs => `
+                    <tr>
+                      <td><strong>${new Date(abs.date).toLocaleDateString('fr-FR', {
+                        weekday: 'short',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}</strong></td>
+                      <td>
+                        <span class="badge">RETARD</span>
+                      </td>
+                      <td>
+                        <span class="session">${abs.session || 'N/A'}</span>
+                      </td>
+                    </tr>
+                  `).join('')}
+              </tbody>
+            </table>
+          ` : ''}
+          
+          <div class="footer">
+            Document généré automatiquement - Système de gestion des absences
+          </div>
+        </body>
+      </html>
+    `;
+    
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    
+    printWindow.onload = () => {
+      printWindow.print();
+      printWindow.onafterprint = () => {
+        printWindow.close();
+      };
+    };
+  };
 
   return (
     <div className="modal show">
       <div className="modal-content" style={{ maxWidth: '1000px' }}>
         <div className="modal-header">
           <h2 className="modal-title">Historique des Absences</h2>
-          <button className="close-modal" onClick={onClose}>
-            <X size={24} />
-          </button>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            {/* Bouton d'impression */}
+            <button 
+              className="btn btn-secondary"
+              onClick={handlePrint}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontSize: '13px',
+                padding: '8px 16px'
+              }}
+              title="Imprimer l'historique"
+            >
+              <Printer size={16} />
+              Imprimer
+            </button>
+            <button className="close-modal" onClick={onClose}>
+              <X size={24} />
+            </button>
+          </div>
         </div>
 
         {/* Informations du stagiaire */}

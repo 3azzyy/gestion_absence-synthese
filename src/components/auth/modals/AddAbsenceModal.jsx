@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Calendar, Plus, Trash2, Clock, AlertCircle, Printer } from 'lucide-react';
+import { X, Calendar, Plus, Trash2, Clock, AlertCircle } from 'lucide-react';
 import { handleSaveAbsences } from '../../utils/storage';
 
 const AddAbsenceModal = ({ trainee, onClose, onSave }) => {
@@ -21,6 +21,7 @@ const AddAbsenceModal = ({ trainee, onClose, onSave }) => {
   const absenceTypes = [
     { value: 'non-justifiee', label: 'Non Justifiée', color: '#dc2626' },
     { value: 'justifiee', label: 'Justifiée', color: '#ea580c' },
+    // { value: 'maladie', label: 'Maladie', color: '#0284c7' },
   ];
 
   // Séances 
@@ -56,30 +57,36 @@ const AddAbsenceModal = ({ trainee, onClose, onSave }) => {
   };
 
   // Mettre à jour une absence
-  const updateAbsence = (id, field, value) => {
-    setAbsences(absences.map(a => {
-      if (a.id === id) {
-        const updated = { ...a, [field]: value };
-        if (field === 'mode') {
-          updated.seances = {
-            seance1: false,
-            seance2: false,
-            seance3: false,
-            seance4: false
-          };
-          if (value === 'absence') updated.heuresRetard = '';
-        }
-        return updated;
+const updateAbsence = (id, field, value) => {
+  setAbsences(absences.map(a => {
+    if (a.id === id) {
+      
+      // Create the updated object
+      const updated = { ...a, [field]: value };
+      // Check if we are specifically changing the mode
+      if (field === 'mode') {
+        updated.seances = {
+          seance1: false,
+          seance2: false,
+          seance3: false,
+          seance4: false
+        };
+        // Optional: Clear heuresRetard if switching to absence mode
+        if (value === 'absence') updated.heuresRetard = '';
       }
-      return a;
-    }));
-  };
+
+      return updated;
+    }
+    return a;
+  }));
+};
 
   // Mettre à jour une séance
   const updateSeance = (absenceId, seanceKey, checked) => {
     setAbsences(absences.map(a => {
       if (a.id === absenceId) {
         if (a.mode === 'retard') {
+          // RADIO BEHAVIOR: Reset all sessions to false, then set the selected one
           const resetSeances = {
             seance1: false, seance2: false, seance3: false, seance4: false
           };
@@ -88,6 +95,7 @@ const AddAbsenceModal = ({ trainee, onClose, onSave }) => {
             seances: { ...resetSeances, [seanceKey]: true }
           };
         } else {
+          // CHECKBOX BEHAVIOR: Just toggle the specific session
           return {
             ...a,
             seances: { ...a.seances, [seanceKey]: checked }
@@ -100,330 +108,12 @@ const AddAbsenceModal = ({ trainee, onClose, onSave }) => {
 
   // Calculer les heures d'une absence
   const calculateAbsenceHours = (absence) => {
-    const seancesChecked = Object.values(absence.seances).filter(Boolean).length;
-    return seancesChecked;
-  };
-
-  // Fonction pour imprimer l'historique
-  const handlePrint = () => {
-    // Only use absences from the current form that have a date
-    const allAbsences = absences
-      .filter(a => a.date) // Only include absences with dates
-      .sort((a, b) => new Date(b.date) - new Date(a.date)); // Sort by date descending
-
-    const totalAbsenceHours = allAbsences
-      .filter(a => a.mode === 'absence')
-      .reduce((sum, a) => sum + calculateAbsenceHours(a) * 2.5, 0);
     
-    const totalRetards = allAbsences.filter(a => a.mode === 'retard').length;
-
-    const printContent = `
-      <!DOCTYPE html>
-      <html lang="fr">
-        <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Historique des Absences - ${trainee.name}</title>
-          <style>
-            * {
-              margin: 0;
-              padding: 0;
-              box-sizing: border-box;
-            }
-            
-            body {
-              font-family: Arial, sans-serif;
-              padding: 30px;
-              color: #333;
-            }
-            
-            .header {
-              text-align: center;
-              margin-bottom: 30px;
-              padding-bottom: 20px;
-              border-bottom: 3px solid #1e3a5f;
-            }
-            
-            h1 {
-              color: #1e3a5f;
-              margin-bottom: 10px;
-              font-size: 24px;
-            }
-            
-            .student-info {
-              display: grid;
-              grid-template-columns: repeat(4, 1fr);
-              gap: 20px;
-              background: #f8f9fa;
-              padding: 20px;
-              border-radius: 8px;
-              margin-bottom: 30px;
-            }
-            
-            .info-item {
-              text-align: center;
-            }
-            
-            .info-label {
-              font-size: 11px;
-              color: #666;
-              text-transform: uppercase;
-              letter-spacing: 0.5px;
-              margin-bottom: 5px;
-            }
-            
-            .info-value {
-              font-size: 18px;
-              font-weight: bold;
-              color: #1e3a5f;
-            }
-            
-            .info-value.danger {
-              color: #dc2626;
-            }
-            
-            .info-value.warning {
-              color: #ea580c;
-            }
-            
-            table {
-              width: 100%;
-              border-collapse: collapse;
-              margin-bottom: 30px;
-            }
-            
-            th, td {
-              border: 1px solid #ddd;
-              padding: 12px 10px;
-              text-align: left;
-            }
-            
-            th {
-              background-color: #1e3a5f;
-              color: white;
-              font-weight: bold;
-              font-size: 12px;
-              text-transform: uppercase;
-            }
-            
-            tr:nth-child(even) {
-              background-color: #f9f9f9;
-            }
-            
-            .badge {
-              display: inline-block;
-              padding: 4px 10px;
-              border-radius: 12px;
-              font-size: 11px;
-              font-weight: 600;
-              color: white;
-            }
-            
-            .badge-retard {
-              background-color: #ea580c;
-            }
-            
-            .badge-absence {
-              background-color: #dc2626;
-            }
-            
-            .badge-justifiee {
-              background-color: #ea580c;
-            }
-            
-            .badge-non-justifiee {
-              background-color: #dc2626;
-            }
-            
-            .summary {
-              background: #1e3a5f;
-              color: white;
-              padding: 20px;
-              border-radius: 8px;
-              display: grid;
-              grid-template-columns: 1fr 1fr;
-              gap: 20px;
-              margin-top: 20px;
-            }
-            
-            .summary-item {
-              text-align: center;
-            }
-            
-            .summary-label {
-              font-size: 12px;
-              opacity: 0.8;
-              margin-bottom: 5px;
-            }
-            
-            .summary-value {
-              font-size: 32px;
-              font-weight: bold;
-            }
-            
-            .footer {
-              margin-top: 30px;
-              text-align: center;
-              color: #666;
-              font-size: 12px;
-              padding-top: 20px;
-              border-top: 1px solid #ddd;
-            }
-            
-            .seances-list {
-              font-size: 11px;
-              color: #666;
-            }
-
-            .empty-state {
-              text-align: center;
-              padding: 40px;
-              color: #666;
-            }
-            
-            @media print {
-              body {
-                padding: 20px;
-              }
-              
-              table {
-                page-break-inside: auto;
-              }
-              
-              tr {
-                page-break-inside: avoid;
-                page-break-after: auto;
-              }
-            }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <h1>Absences et Retards à Enregistrer</h1>
-            <p style="color: #666; margin-top: 5px;">
-              Généré le ${new Date().toLocaleDateString('fr-FR', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-              })}
-            </p>
-          </div>
-
-          <div class="student-info">
-            <div class="info-item">
-              <div class="info-label">Stagiaire</div>
-              <div class="info-value">${trainee.name}</div>
-            </div>
-            <div class="info-item">
-              <div class="info-label">Groupe</div>
-              <div class="info-value">${trainee.group}</div>
-            </div>
-            <div class="info-item">
-              <div class="info-label">Total Heures</div>
-              <div class="info-value danger">${totalAbsenceHours.toFixed(1)}h</div>
-            </div>
-            <div class="info-item">
-              <div class="info-label">Total Retards</div>
-              <div class="info-value warning">${totalRetards}</div>
-            </div>
-          </div>
-
-          ${allAbsences.length > 0 ? `
-            <table>
-              <thead>
-                <tr>
-                  <th style="width: 100px;">Date</th>
-                  <th style="width: 100px;">Type</th>
-                  <th style="width: 150px;">Statut</th>
-                  <th>Séances</th>
-                  <th style="width: 80px; text-align: center;">Heures</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${allAbsences.map(absence => {
-                  const isRetard = absence.mode === 'retard';
-                  const absenceType = absence.type || 'non-justifiee';
-                  const heures = calculateAbsenceHours(absence) * (isRetard ? 1 : 2.5);
-                  
-                  // Get selected seances
-                  const selectedSeances = seancesList
-                    .filter(s => absence.seances && absence.seances[s.key])
-                    .map(s => s.label)
-                    .join(', ') || '-';
-                  
-                  return `
-                    <tr>
-                      <td>${new Date(absence.date).toLocaleDateString('fr-FR')}</td>
-                      <td>
-                        <span class="badge badge-${isRetard ? 'retard' : 'absence'}">
-                          ${isRetard ? 'Retard' : 'Absence'}
-                        </span>
-                      </td>
-                      <td>
-                        ${!isRetard ? `
-                          <span class="badge badge-${absenceType}">
-                            ${absenceType === 'justifiee' ? 'Justifiée' : 'Non Justifiée'}
-                          </span>
-                        ` : '-'}
-                      </td>
-                      <td class="seances-list">${selectedSeances}</td>
-                      <td style="text-align: center; font-weight: bold; color: #dc2626;">
-                        ${heures.toFixed(1)}h
-                      </td>
-                    </tr>
-                  `;
-                }).join('')}
-              </tbody>
-            </table>
-
-            <div class="summary">
-              <div class="summary-item">
-                <div class="summary-label">Total Heures d'Absence</div>
-                <div class="summary-value">${totalAbsenceHours.toFixed(1)}h</div>
-              </div>
-              <div class="summary-item">
-                <div class="summary-label">Total Retards</div>
-                <div class="summary-value">${totalRetards}</div>
-              </div>
-            </div>
-          ` : `
-            <div class="empty-state">
-              <p style="font-size: 16px;">Aucune absence ou retard à enregistrer</p>
-              <p style="font-size: 14px; margin-top: 10px; color: #999;">Veuillez remplir au moins une entrée avec une date</p>
-            </div>
-          `}
-
-          <div class="footer">
-            <p>Document confidentiel - ${trainee.name} - ${trainee.group}</p>
-          </div>
-
-          <script>
-            window.onload = function() {
-              window.print();
-            };
-          </script>
-        </body>
-      </html>
-    `;
-
-    // Create a new window
-    const printWindow = window.open('', '_blank', 'width=800,height=600');
+      // Compter les séances cochées et multiplier par 2.5 heures
+      const seancesChecked = Object.values(absence.seances).filter(Boolean).length;
+      return seancesChecked; 
     
-    if (!printWindow) {
-      alert('Veuillez autoriser les popups pour imprimer');
-      return;
-    }
-
-    // Write content
-    printWindow.document.open();
-    printWindow.document.write(printContent);
-    printWindow.document.close();
-
-    // Focus the window
-    printWindow.focus();
   };
-
   // Sauvegarder les absences
   const handleSave = () => {
     const invalidAbsences = absences.filter(a => {
@@ -440,10 +130,10 @@ const AddAbsenceModal = ({ trainee, onClose, onSave }) => {
 
     const formattedAbsences = absences.map(a => ({
       date: a.date,
-      type: a.type,
+      type:  a.type ,
       isRetard: a.mode === 'retard',
       heures: calculateAbsenceHours(a),
-      seances: a.seances,
+      seances: a.seances ,
       heuresRetard: a.mode === 'retard' ? parseFloat(a.heuresRetard) : null
     }));
     
@@ -459,24 +149,9 @@ const AddAbsenceModal = ({ trainee, onClose, onSave }) => {
       <div className="modal-content" style={{ maxWidth: '950px' }}>
         <div className="modal-header">
           <h2 className="modal-title">Ajouter des Absences</h2>
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-            <button 
-              className="btn btn-sm"
-              onClick={handlePrint}
-              style={{ 
-                background: 'var(--info)', 
-                color: 'white',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}
-            >
-              <Printer size={16} /> Imprimer
-            </button>
-            <button className="close-modal" onClick={onClose}>
-              <X size={24} />
-            </button>
-          </div>
+          <button className="close-modal" onClick={onClose}>
+            <X size={24} />
+          </button>
         </div>
 
         {/* Informations du stagiaire */}
@@ -581,6 +256,7 @@ const AddAbsenceModal = ({ trainee, onClose, onSave }) => {
 
         {/* Liste des absences */}
         <div style={{
+          // maxHeight: '500px', 
           overflowY: 'auto',
           marginBottom: '20px'
         }}>
@@ -637,6 +313,7 @@ const AddAbsenceModal = ({ trainee, onClose, onSave }) => {
                 </label>
                 <input
                   type="date"
+                  
                   className="input"
                   value={absence.date}
                   onChange={(e) => updateAbsence(absence.id, 'date', e.target.value)}
@@ -727,6 +404,40 @@ const AddAbsenceModal = ({ trainee, onClose, onSave }) => {
                 </div>
               </div>
 
+
+              {/* {absence.mode === 'retard' && (
+                <div style={{
+                  background: '#fff7ed',
+                  border: '1px solid #fed7aa',
+                  borderRadius: '8px',
+                  padding: '16px'
+                }}>
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label className="form-label" style={{ marginBottom: '8px' }}>
+                      Nombre d'heures de retard
+                    </label>
+                    <input
+                      type="number"
+                      className="input"
+                      placeholder="Ex: 0.5 pour 30 minutes"
+                      min="0"
+                      step="0.25"
+                      value={absence.heuresRetard}
+                      onChange={(e) => updateAbsence(absence.id, 'heuresRetard', e.target.value)}
+                      style={{ width: '100%' }}
+                    />
+                    <div style={{ 
+                      fontSize: '12px', 
+                      color: '#92400e', 
+                      marginTop: '8px'
+                    }}>
+                      Exemples: 0.25h = 15min • 0.5h = 30min • 1h = 60min
+                    </div>
+                  </div>
+                </div>
+              )} */}
+
+
               {/* Type d'absence */}
               <div className="form-group" style={{ marginBottom: '20px' }}>
                 <label className="form-label" style={{ marginBottom: '8px' }}>
@@ -763,6 +474,7 @@ const AddAbsenceModal = ({ trainee, onClose, onSave }) => {
                 }}>
                   {seancesList.map(seance => (
                     absence.mode && absence.mode === "absence" ?
+
                       <label
                         key={seance.key}
                         style={{
@@ -843,6 +555,7 @@ const AddAbsenceModal = ({ trainee, onClose, onSave }) => {
                           {seance.time}
                         </div>
                       </label>
+
                   ))}
                 </div>
 
