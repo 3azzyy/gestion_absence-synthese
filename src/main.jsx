@@ -10,8 +10,8 @@ createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
     <App />
-    <AllStorage />
-    <MultiJsonAttendanceImporter />
+    {/* <AllStorage />
+    <MultiJsonAttendanceImporter /> */}
     </BrowserRouter>
   </StrictMode>,
 )

@@ -32,16 +32,16 @@ export const getAllUsers = () => {
 // Ajouter un utilisateur
 export const addUser = (userData) => {
   const users = getAllUsers();
-  
+
   // Check if username already exists
   if (users.some(u => u.username.toLowerCase() === userData.username.toLowerCase())) {
     throw new Error('Ce nom d\'utilisateur existe déjà');
   }
-  
+
   const newUser = {
     id: Date.now(),
     username: userData.username,
-    password: userData.password, 
+    password: userData.password,
     role: userData.role || 'user',
     created_at: new Date().toISOString()
   };
@@ -112,16 +112,16 @@ export const createSession = (user, token) => {
     id: user.id,
     username: user.username,
     // FIX: Fallback logic ensures fullName is never undefined for the Header
-    fullName: user.fullName || user.full_name || user.username, 
+    fullName: user.fullName || user.full_name || user.username,
     role: user.role,
     token: token,
     loginTime: new Date().toISOString()
   };
   localStorage.setItem(AUTH_KEY, JSON.stringify(session));
-  
+
   // Set the default header for all future axios calls
   axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-  
+
   return session;
 };
 
@@ -159,12 +159,12 @@ export const authenticateUser = async (username, password) => {
     }
   } catch (error) {
     // console.warn("API login failed, checking local users...");
-    
+
     // // Local Fallback (Useful for offline development or local-only admins)
     // const users = getAllUsers();
     // // Safety check: ensure users is an array before calling .find
     // const localUser = (users || []).find(u => u.username === username && u.password === password);
-    
+
     // if (localUser) {
     //   const session = createSession(localUser, 'local_token_' + Date.now());
     //   return { success: true, user: localUser, session };
@@ -253,87 +253,97 @@ export const deleteUserAPI = async (userId) => {
 /////////////////////////////////////////////////
 //absence 
 /////////////////////////////////////////////////
-export  const fetchWeeklyStats = async () => {
-    try {
-      const response = await api.get('/dashboard/stats');
-      console.log('Weekly stats response:', response.data);
-      localStorage.setItem('statsData',JSON.stringify(response.data.data))
-      return response.data.data;
-    } catch (error) {
-      console.error('Error fetching weekly stats:', error);
-      return { total: 0, atRisk: 0, totalHours: 0, totalDays: 0 };
-    }
-  };
+export const fetchWeeklyStats = async () => {
+  try {
+    const response = await api.get('/dashboard/stats');
+    console.log('Weekly stats response:', response.data);
+    localStorage.setItem('statsData', JSON.stringify(response.data.data))
+    return response.data.data;
+  } catch (error) {
+    console.error('Error fetching weekly stats:', error);
+    return { total: 0, atRisk: 0, totalHours: 0, totalDays: 0 };
+  }
+};
 
-export  const fetchTopStudents = async (idclass) => {
-    try {
-      const url = idclass ? `/dashboard/best/${idclass}` : '/dashboard/best';
-      const response = await api.get(url);
-      localStorage.setItem('topData',JSON.stringify(response.data.data))
-      return response.data.data;
-    } catch (error) {
-      console.error('Error fetching top students:', error);
-      return [];
-    }
-  };
+export const fetchTopStudents = async (idclass) => {
+  try {
+    const url = idclass ? `/dashboard/best/${idclass}` : '/dashboard/best';
+    const response = await api.get(url);
+    localStorage.setItem('topData', JSON.stringify(response.data.data))
+    return response.data.data;
+  } catch (error) {
+    console.error('Error fetching top students:', error);
+    return [];
+  }
+};
 
-export  const fetchWorstStudents = async (idclass) => {
-    try {
-      const url = idclass ? `/dashboard/worst/${idclass}` : '/dashboard/worst';
-      const response = await api.get(url);
-      localStorage.setItem('worstData',JSON.stringify(response.data.data))
-      return response.data.data;
-    } catch (error) {
-      console.error('Error fetching worst students:', error);
-      return [];
-    }
-  };
+export const fetchWorstStudents = async (idclass) => {
+  try {
+    const url = idclass ? `/dashboard/worst/${idclass}` : '/dashboard/worst';
+    const response = await api.get(url);
+    localStorage.setItem('worstData', JSON.stringify(response.data.data))
+    return response.data.data;
+  } catch (error) {
+    console.error('Error fetching worst students:', error);
+    return [];
+  }
+};
 
 export const handleSaveAbsences = async (studentId, payload) => {
-    const statusMap = {
-      'justifiee': 'justified',
-      'non_justifiee': 'absent',
-      'retard': 'late',
-      'present': 'present'
-    };
-
-    // FIX: These must match your DB ENUM: S1, S2, S3, S4
-    const sessionMap = {
-      'seance1': 'S1',
-      'seance2': 'S2',
-      'seance3': 'S3',
-      'seance4': 'S4'
-    };
-
-    const formattedAbsences = payload.absences.map(abs => {
-      // Identify which checkbox was checked
-      const activeSessionKey = Object.keys(abs.seances || {}).find(key => abs.seances[key] === true);
-
-      return {
-        date: abs.date,
-        heures: abs.heures || 0,
-        isRetard: abs.isRetard || false,
-        status: statusMap[abs.type] || 'absent',
-        // Map 'seance1' to 'S1'
-        session: sessionMap[activeSessionKey] || null,
-        reason: abs.motif || null,
-        seances: abs.seances || {}
-      };
-    });
-    
-    try {
-      await api.post(`/students/${studentId}/absences`, {
-        absences: formattedAbsences
-      });
-
-      fetchWeeklyStats();
-      fetchWorstStudents();
-      fetchTopStudents();
-
-      alert('Absences enregistrées !');
-      // window.location.reload();
-    } catch (error) {
-      console.error("Backend Error:", error.response?.data);
-      alert('Erreur: ' + (error.response?.data?.message || 'Erreur Serveur'));
-    }
+  const statusMap = {
+    'justifiee': 'justified',
+    'non_justifiee': 'absent',
+    'retard': 'late',
+    'present': 'present'
   };
+
+  // FIX: These must match your DB ENUM: S1, S2, S3, S4
+  const sessionMap = {
+    'seance1': 'S1',
+    'seance2': 'S2',
+    'seance3': 'S3',
+    'seance4': 'S4'
+  };
+
+
+
+  const formattedAbsences = payload.absences.flatMap(abs => {
+    const sts = abs.isRetard ? 'late' : (statusMap[abs.type] || 'absent');
+
+
+    return Object.entries(abs.seances)
+      .filter(([_, isChecked]) => isChecked)
+      .map(([seanceKey]) => ({
+        student_id: studentId,
+        date: abs.date,
+        status: sts,
+        session: sessionMap[seanceKey],
+        duration: sts == "absent" ? 1 : 0,
+        reason: abs.motif || null,
+        type : "session",
+        isRetard: abs.isRetard,
+        originale_session : sessionMap[seanceKey].toLowerCase()
+      }));
+  });
+
+  console.log(payload);
+  console.log(formattedAbsences);
+
+
+
+  try {
+    await api.post(`/students/${studentId}/absences`, {
+      absences: formattedAbsences
+    });
+
+    fetchWeeklyStats();
+    fetchWorstStudents();
+    fetchTopStudents();
+
+    alert('Absences enregistrées !');
+    window.location.reload();
+  } catch (error) {
+    console.error("Backend Error:", error.response?.data);
+    alert('Erreur: ' + (error.response?.data?.message || 'Erreur Serveur'));
+  }
+};

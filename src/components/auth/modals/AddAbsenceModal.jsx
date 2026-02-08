@@ -25,12 +25,12 @@ const AddAbsenceModal = ({ trainee, onClose, onSave }) => {
   ];
 
   // Séances 
-const seancesList = [
-  { key: 'seance1', label: 'Séance 1', time: '8h30 - 11h00', heures: 1 },
-  { key: 'seance2', label: 'Séance 2', time: '11h00 - 13h30', heures: 1 },
-  { key: 'seance3', label: 'Séance 3', time: '13h30 - 16h00', heures: 1 },
-  { key: 'seance4', label: 'Séance 4', time: '16h00 - 18h30', heures: 1 }
-];
+  const seancesList = [
+    { key: 'seance1', label: 'Séance 1', time: '8h30 - 11h00', heures: 1 },
+    { key: 'seance2', label: 'Séance 2', time: '11h00 - 13h30', heures: 1 },
+    { key: 'seance3', label: 'Séance 3', time: '13h30 - 16h00', heures: 1 },
+    { key: 'seance4', label: 'Séance 4', time: '16h00 - 18h30', heures: 1 }
+  ];
 
   // Ajouter une nouvelle absence
   const addAbsence = () => {
@@ -57,47 +57,72 @@ const seancesList = [
   };
 
   // Mettre à jour une absence
-  const updateAbsence = (id, field, value) => {
-    setAbsences(absences.map(a => 
-      a.id === id ? { ...a, [field]: value } : a
-    ));
-  };
+const updateAbsence = (id, field, value) => {
+  setAbsences(absences.map(a => {
+    if (a.id === id) {
+      
+      // Create the updated object
+      const updated = { ...a, [field]: value };
+      // Check if we are specifically changing the mode
+      if (field === 'mode') {
+        updated.seances = {
+          seance1: false,
+          seance2: false,
+          seance3: false,
+          seance4: false
+        };
+        // Optional: Clear heuresRetard if switching to absence mode
+        if (value === 'absence') updated.heuresRetard = '';
+      }
+
+      return updated;
+    }
+    return a;
+  }));
+};
 
   // Mettre à jour une séance
   const updateSeance = (absenceId, seanceKey, checked) => {
     setAbsences(absences.map(a => {
       if (a.id === absenceId) {
-        return {
-          ...a,
-          seances: {
-            ...a.seances,
-            [seanceKey]: checked
-          }
-        };
+        if (a.mode === 'retard') {
+          // RADIO BEHAVIOR: Reset all sessions to false, then set the selected one
+          const resetSeances = {
+            seance1: false, seance2: false, seance3: false, seance4: false
+          };
+          return {
+            ...a,
+            seances: { ...resetSeances, [seanceKey]: true }
+          };
+        } else {
+          // CHECKBOX BEHAVIOR: Just toggle the specific session
+          return {
+            ...a,
+            seances: { ...a.seances, [seanceKey]: checked }
+          };
+        }
       }
       return a;
     }));
   };
 
   // Calculer les heures d'une absence
-const calculateAbsenceHours = (absence) => {
-  if (absence.mode === 'retard') {
-    return parseFloat(absence.heuresRetard) || 0;
-  } else {
-    // Compter les séances cochées et multiplier par 2.33 heures
-    const seancesChecked = Object.values(absence.seances).filter(Boolean).length;
-    return seancesChecked; // Chaque séance = 2h20min = 2.33h
-  }
-};
+  const calculateAbsenceHours = (absence) => {
+    
+      // Compter les séances cochées et multiplier par 2.5 heures
+      const seancesChecked = Object.values(absence.seances).filter(Boolean).length;
+      return seancesChecked; 
+    
+  };
   // Sauvegarder les absences
   const handleSave = () => {
     const invalidAbsences = absences.filter(a => {
       if (!a.date) return true;
-      if (a.mode === 'retard' && !a.heuresRetard) return true;
+      if (a.mode === 'retard' && !Object.values(a.seances).some(Boolean)) return true;
       if (a.mode === 'absence' && !Object.values(a.seances).some(Boolean)) return true;
       return false;
     });
-    
+
     if (invalidAbsences.length > 0) {
       alert('Veuillez remplir tous les champs obligatoires');
       return;
@@ -105,13 +130,13 @@ const calculateAbsenceHours = (absence) => {
 
     const formattedAbsences = absences.map(a => ({
       date: a.date,
-      type: a.mode === 'absence' ? a.type : null,
+      type:  a.type ,
       isRetard: a.mode === 'retard',
       heures: calculateAbsenceHours(a),
-      seances: a.mode === 'absence' ? a.seances : null,
+      seances: a.seances ,
       heuresRetard: a.mode === 'retard' ? parseFloat(a.heuresRetard) : null
     }));
-
+    
     handleSaveAbsences(trainee.id, { absences: formattedAbsences });
     onClose();
   };
@@ -137,16 +162,16 @@ const calculateAbsenceHours = (absence) => {
           marginBottom: '24px',
           border: '1px solid #e2e8f0'
         }}>
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', 
-            gap: '20px' 
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+            gap: '20px'
           }}>
             <div>
-              <div style={{ 
-                fontSize: '11px', 
-                color: '#64748b', 
-                marginBottom: '6px', 
+              <div style={{
+                fontSize: '11px',
+                color: '#64748b',
+                marginBottom: '6px',
                 fontWeight: 600,
                 textTransform: 'uppercase',
                 letterSpacing: '0.5px'
@@ -158,10 +183,10 @@ const calculateAbsenceHours = (absence) => {
               </div>
             </div>
             <div>
-              <div style={{ 
-                fontSize: '11px', 
-                color: '#64748b', 
-                marginBottom: '6px', 
+              <div style={{
+                fontSize: '11px',
+                color: '#64748b',
+                marginBottom: '6px',
                 fontWeight: 600,
                 textTransform: 'uppercase',
                 letterSpacing: '0.5px'
@@ -173,10 +198,10 @@ const calculateAbsenceHours = (absence) => {
               </div>
             </div>
             <div>
-              <div style={{ 
-                fontSize: '11px', 
-                color: '#64748b', 
-                marginBottom: '6px', 
+              <div style={{
+                fontSize: '11px',
+                color: '#64748b',
+                marginBottom: '6px',
                 fontWeight: 600,
                 textTransform: 'uppercase',
                 letterSpacing: '0.5px'
@@ -188,10 +213,10 @@ const calculateAbsenceHours = (absence) => {
               </div>
             </div>
             <div>
-              <div style={{ 
-                fontSize: '11px', 
-                color: '#64748b', 
-                marginBottom: '6px', 
+              <div style={{
+                fontSize: '11px',
+                color: '#64748b',
+                marginBottom: '6px',
                 fontWeight: 600,
                 textTransform: 'uppercase',
                 letterSpacing: '0.5px'
@@ -212,16 +237,16 @@ const calculateAbsenceHours = (absence) => {
           alignItems: 'center',
           marginBottom: '20px'
         }}>
-          <h3 style={{ 
-            margin: 0, 
-            fontSize: '16px', 
-            fontWeight: 600, 
-            color: '#0f172a' 
+          <h3 style={{
+            margin: 0,
+            fontSize: '16px',
+            fontWeight: 600,
+            color: '#0f172a'
           }}>
             Enregistrements ({absences.length})
           </h3>
-          <button 
-            className="btn btn-sm" 
+          <button
+            className="btn btn-sm"
             onClick={addAbsence}
             style={{ fontSize: '13px' }}
           >
@@ -230,10 +255,10 @@ const calculateAbsenceHours = (absence) => {
         </div>
 
         {/* Liste des absences */}
-        <div style={{ 
+        <div style={{
           // maxHeight: '500px', 
-          overflowY: 'auto', 
-          marginBottom: '20px' 
+          overflowY: 'auto',
+          marginBottom: '20px'
         }}>
           {absences.map((absence, index) => (
             <div key={absence.id} style={{
@@ -252,7 +277,7 @@ const calculateAbsenceHours = (absence) => {
                 paddingBottom: '12px',
                 borderBottom: '1px solid #e2e8f0'
               }}>
-                <span style={{ 
+                <span style={{
                   fontSize: '13px',
                   fontWeight: 600,
                   color: '#64748b'
@@ -260,7 +285,7 @@ const calculateAbsenceHours = (absence) => {
                   Enregistrement #{index + 1}
                 </span>
                 {absences.length > 1 && (
-                  <button 
+                  <button
                     onClick={() => removeAbsence(absence.id)}
                     style={{
                       background: 'transparent',
@@ -288,6 +313,7 @@ const calculateAbsenceHours = (absence) => {
                 </label>
                 <input
                   type="date"
+                  
                   className="input"
                   value={absence.date}
                   onChange={(e) => updateAbsence(absence.id, 'date', e.target.value)}
@@ -301,7 +327,7 @@ const calculateAbsenceHours = (absence) => {
                 <label className="form-label" style={{ marginBottom: '12px', display: 'block' }}>
                   Type d'enregistrement
                 </label>
-                <div style={{ 
+                <div style={{
                   display: 'grid',
                   gridTemplateColumns: '1fr 1fr',
                   gap: '12px'
@@ -327,8 +353,8 @@ const calculateAbsenceHours = (absence) => {
                       style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: '#ea580c' }}
                     />
                     <div>
-                      <div style={{ 
-                        fontWeight: 600, 
+                      <div style={{
+                        fontWeight: 600,
                         fontSize: '14px',
                         color: absence.mode === 'retard' ? '#ea580c' : '#64748b',
                         display: 'flex',
@@ -362,8 +388,8 @@ const calculateAbsenceHours = (absence) => {
                       style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: '#dc2626' }}
                     />
                     <div>
-                      <div style={{ 
-                        fontWeight: 600, 
+                      <div style={{
+                        fontWeight: 600,
                         fontSize: '14px',
                         color: absence.mode === 'absence' ? '#dc2626' : '#64748b',
                         display: 'flex',
@@ -378,8 +404,8 @@ const calculateAbsenceHours = (absence) => {
                 </div>
               </div>
 
-              {/* Si Retard */}
-              {absence.mode === 'retard' && (
+
+              {/* {absence.mode === 'retard' && (
                 <div style={{
                   background: '#fff7ed',
                   border: '1px solid #fed7aa',
@@ -409,106 +435,147 @@ const calculateAbsenceHours = (absence) => {
                     </div>
                   </div>
                 </div>
-              )}
+              )} */}
 
-              {/* Si Absence */}
-              {absence.mode === 'absence' && (
-                <>
-                  {/* Type d'absence */}
-                  <div className="form-group" style={{ marginBottom: '20px' }}>
-                    <label className="form-label" style={{ marginBottom: '8px' }}>
-                      Type d'absence
-                    </label>
-                    <select
-                      className="input"
-                      value={absence.type}
-                      onChange={(e) => updateAbsence(absence.id, 'type', e.target.value)}
-                      style={{ width: '100%' }}
-                    >
-                      {absenceTypes.map(type => (
-                        <option key={type.value} value={type.value}>
-                          {type.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
 
-                  {/* Séances */}
-                  <div style={{
-                    background: '#fef2f2',
-                    border: '1px solid #fecaca',
-                    borderRadius: '8px',
-                    padding: '16px'
-                  }}>
-                    <label className="form-label" style={{ marginBottom: '12px', display: 'block' }}>
-                      Séances absentes (2.5h par séance)
-                    </label>
-                    <div style={{
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
-                      gap: '10px'
-                    }}>
-                      {seancesList.map(seance => (
-                        <label 
-                          key={seance.key}
-                          style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: '6px',
-                            padding: '12px',
-                            background: absence.seances[seance.key] ? '#dc2626' : '#ffffff',
-                            color: absence.seances[seance.key] ? '#ffffff' : '#0f172a',
-                            border: '1px solid',
-                            borderColor: absence.seances[seance.key] ? '#dc2626' : '#e2e8f0',
-                            borderRadius: '6px',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s ease'
-                          }}
-                        >
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <input
-                              type="checkbox"
-                              checked={absence.seances[seance.key]}
-                              onChange={(e) => updateSeance(absence.id, seance.key, e.target.checked)}
-                              style={{ 
-                                width: '16px', 
-                                height: '16px', 
-                                cursor: 'pointer'
-                              }}
-                            />
-                            <span style={{ fontWeight: 600, fontSize: '13px' }}>
-                              {seance.label}
-                            </span>
-                          </div>
-                          <div style={{ 
-                            fontSize: '11px', 
-                            opacity: 0.85,
-                            paddingLeft: '24px'
-                          }}>
-                            {seance.time}
-                          </div>
-                        </label>
-                      ))}
-                    </div>
-                    
-                    {/* Total des séances */}
-                    <div style={{
-                      marginTop: '12px',
-                      padding: '10px 12px',
-                      background: '#ffffff',
-                      borderRadius: '6px',
-                      fontSize: '13px',
-                      fontWeight: 600,
-                      color: '#0f172a',
-                      border: '1px solid #e2e8f0'
-                    }}>
-                      Total: {Object.values(absence.seances).filter(Boolean).length} séance(s) = {Object.values(absence.seances).filter(Boolean).length * 2.5}h
-                    </div>
-                  </div>
-                </>
-              )}
+              {/* Type d'absence */}
+              <div className="form-group" style={{ marginBottom: '20px' }}>
+                <label className="form-label" style={{ marginBottom: '8px' }}>
+                  Type d'absence
+                </label>
+                <select
+                  className="input"
+                  value={absence.type}
+                  onChange={(e) => updateAbsence(absence.id, 'type', e.target.value)}
+                  style={{ width: '100%' }}
+                >
+                  {absenceTypes.map(type => (
+                    <option key={type.value} value={type.value}>
+                      {type.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Séances */}
+              <div style={{
+                background: '#fef2f2',
+                border: '1px solid #fecaca',
+                borderRadius: '8px',
+                padding: '16px'
+              }}>
+                <label className="form-label" style={{ marginBottom: '12px', display: 'block' }}>
+                  {absence.mode === 'absence' ? "Séances absentes (2.5h par séance)" : "Séances de retard"}
+                </label>
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+                  gap: '10px'
+                }}>
+                  {seancesList.map(seance => (
+                    absence.mode && absence.mode === "absence" ?
+
+                      <label
+                        key={seance.key}
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '6px',
+                          padding: '12px',
+                          background: absence.seances[seance.key] ? '#dc2626' : '#ffffff',
+                          color: absence.seances[seance.key] ? '#ffffff' : '#0f172a',
+                          border: '1px solid',
+                          borderColor: absence.seances[seance.key] ? '#dc2626' : '#e2e8f0',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease'
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <input
+                            type="checkbox"
+                            checked={absence.seances[seance.key]}
+                            onChange={(e) => updateSeance(absence.id, seance.key, e.target.checked)}
+                            style={{
+                              width: '16px',
+                              height: '16px',
+                              cursor: 'pointer'
+                            }}
+                          />
+                          <span style={{ fontWeight: 600, fontSize: '13px' }}>
+                            {seance.label}
+                          </span>
+                        </div>
+                        <div style={{
+                          fontSize: '11px',
+                          opacity: 0.85,
+                          paddingLeft: '24px'
+                        }}>
+                          {seance.time}
+                        </div>
+                      </label>
+                      :
+                      <label
+                        key={seance.key}
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '6px',
+                          padding: '12px',
+                          background: absence.seances[seance.key] ? '#dc2626' : '#ffffff',
+                          color: absence.seances[seance.key] ? '#ffffff' : '#0f172a',
+                          border: '1px solid',
+                          borderColor: absence.seances[seance.key] ? '#dc2626' : '#e2e8f0',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease'
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <input
+                            type="radio"
+                            name={`seance-radio-${absence.id}`}
+                            checked={absence.seances[seance.key]}
+                            onChange={(e) => updateSeance(absence.id, seance.key, true)}
+                            style={{
+                              width: '16px',
+                              height: '16px',
+                              cursor: 'pointer'
+                            }}
+                          />
+                          <span style={{ fontWeight: 600, fontSize: '13px' }}>
+                            {seance.label}
+                          </span>
+                        </div>
+                        <div style={{
+                          fontSize: '11px',
+                          opacity: 0.85,
+                          paddingLeft: '24px'
+                        }}>
+                          {seance.time}
+                        </div>
+                      </label>
+
+                  ))}
+                </div>
+
+                {/* Total des séances */}
+                {absence.mode === "absence" && <div style={{
+                  marginTop: '12px',
+                  padding: '10px 12px',
+                  background: '#ffffff',
+                  borderRadius: '6px',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  color: '#0f172a',
+                  border: '1px solid #e2e8f0'
+                }}>
+                  Total: {Object.values(absence.seances).filter(Boolean).length} séance(s) = {Object.values(absence.seances).filter(Boolean).length * 2.5}h
+                </div>}
+              </div>
 
               {/* Résumé */}
+              {absence.mode === "absence" && 
               <div style={{
                 marginTop: '16px',
                 padding: '12px',
@@ -525,7 +592,7 @@ const calculateAbsenceHours = (absence) => {
                 <span style={{ fontSize: '16px', color: '#dc2626' }}>
                   {(calculateAbsenceHours(absence) * (absence?.mode === 'retard' ? 1 : 2.5)).toFixed(2)}h
                 </span>
-              </div>
+              </div>}
             </div>
           ))}
         </div>

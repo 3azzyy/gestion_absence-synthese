@@ -64,33 +64,32 @@ class AbsenceController extends Controller
     {
         $student = Student::findOrFail($studentId);
 
-        // Validate that we received an array of absences
         $request->validate([
             'absences' => 'required|array',
             'absences.*.date' => 'required|date',
-            'absences.*.isRetard' => 'required|boolean',
-            'absences.*.heures' => 'required|numeric',
+            'absences.*.status' => 'required|in:absent,justified,late,present',
+            'absences.*.type' => 'required|in:hours,days,session',
+            'absences.*.duration' => 'required|numeric',
         ]);
 
         DB::transaction(function () use ($request, $studentId, $student) {
             foreach ($request->absences as $abs) {
                 Absence::create([
-                    'student_id' => $studentId,
-                    'date' => $abs['date'],
-                    // If it's a retard, type is hours, otherwise it's a session
-                    'type' => $abs['isRetard'] ? 'hours' : 'session',
-                    'duration' => $abs['heures'],
-                    // FIX: Use the status sent from React, or fallback to 'late' if isRetard is true
-                    'status' => $abs['isRetard'] ? 'late' : ($abs['status'] ?? 'absent'),
-                    'session' => $this->mapSeancesToSession($abs['seances'] ?? []),
-                    'reason' => $abs['reason'] ?? null,
-                    'created_by' => Auth::id(),
+                    'student_id'       => $studentId,
+                    'date'             => $abs['date'],
+                    'type'             => $abs['type'],     // 'hours' or 'session'
+                    'duration'         => $abs['duration'], // the 2.5 or retard hours
+                    'status'           => $abs['status'],   // 'absent', 'late', etc.
+                    'session'          => $abs['session'],  // 'S1', 'S2', etc.
+                    'reason'           => $abs['reason'] ?? null,
+                    'original_session' => $abs['original_session'] ?? null,
+                    'created_by'       => Auth::id(),
                 ]);
             }
             $this->updateStudentCounters($student);
         });
 
-        return response()->json(['success' => true, 'message' => 'Records saved']);
+        return response()->json(['success' => true, 'message' => 'Absences enregistrées']);
     }
 
     private function mapSeancesToSession(array $seances): ?string
@@ -133,6 +132,15 @@ class AbsenceController extends Controller
             'reason' => 'nullable|string',
             'session' => 'nullable|in:S1,S2,S3,S4',
         ]);
+
+        if (isset($validated['status'])) {
+            if ($validated['status'] !== 'absent') {
+                $validated['duration'] = 0;
+            } else {
+                // If they are changing it BACK to absent, ensure duration is 1
+                $validated['duration'] = 1;
+            }
+        }
 
         $absence->update($validated);
 

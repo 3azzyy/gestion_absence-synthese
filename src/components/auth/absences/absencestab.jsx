@@ -102,6 +102,7 @@ export default function Absence() {
             <label className="form-label">Date Début</label>
             <input
               type="date"
+              
               className="input"
               value={filters.date_from}
               onChange={(e) => setFilters({ ...filters, date_from: e.target.value })}
@@ -112,6 +113,7 @@ export default function Absence() {
             <label className="form-label">Date Fin</label>
             <input
               type="date"
+              
               className="input"
               value={filters.date_to}
               onChange={(e) => setFilters({ ...filters, date_to: e.target.value })}

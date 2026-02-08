@@ -5,6 +5,7 @@ import axios from 'axios';
 import api from '../../../services/http';
 import { formatstudents } from '../../utils/calculation';
 
+
 const DashboardTab = () => {
 
   const [stats, setStats] = useState({ total: 0, atRisk: 0, totalHours: 0, totalDays: 0 })
@@ -14,16 +15,19 @@ const DashboardTab = () => {
   const [formattedWorstStudents, setFormattedWorstStudents] = useState([]);
   const [formattedTopStudents, setFormattedTopStudents] = useState([]);
 
-  useEffect(()=>{
+  const sanctionDistribution = []
+  const groupStats = []
 
-    const fetchall = async ()=> {
+  useEffect(() => {
+
+    const fetchall = async () => {
       await fetchWeeklyStats();
       await fetchTopStudents();
       await fetchWorstStudents();
     }
 
     fetchall();
-  },[])
+  }, [])
 
 
   useEffect(() => {
@@ -49,7 +53,7 @@ const DashboardTab = () => {
   const fetchWeeklyStats = async () => {
     try {
       const response = await api.get('/dashboard/stats');
-      localStorage.setItem('statsData',JSON.stringify(response.data.data))
+      localStorage.setItem('statsData', JSON.stringify(response.data.data))
       return response.data.data;
     } catch (error) {
       console.error('Error fetching weekly stats:', error);
@@ -61,7 +65,7 @@ const DashboardTab = () => {
     try {
       const url = idclass ? `/dashboard/worst/${idclass}` : '/dashboard/worst';
       const response = await api.get(url);
-      localStorage.setItem('worstData',JSON.stringify(response.data.data))
+      localStorage.setItem('worstData', JSON.stringify(response.data.data))
       return response.data.data;
     } catch (error) {
       console.error('Error fetching worst students:', error);
@@ -73,7 +77,7 @@ const DashboardTab = () => {
     try {
       const url = idclass ? `/dashboard/best/${idclass}` : '/dashboard/best';
       const response = await api.get(url);
-      localStorage.setItem('topData',JSON.stringify(response.data.data))
+      localStorage.setItem('topData', JSON.stringify(response.data.data))
       return response.data.data;
     } catch (error) {
       console.error('Error fetching top students:', error);
@@ -83,7 +87,7 @@ const DashboardTab = () => {
 
   const handlePrintTopStudents = () => {
     const printWindow = window.open('', '', 'width=800,height=600');
-    
+
     const printContent = `
       <!DOCTYPE html>
       <html>
@@ -144,11 +148,11 @@ const DashboardTab = () => {
         </head>
         <body>
           <h1>Meilleurs Stagiaires</h1>
-          <div class="date">${new Date().toLocaleDateString('fr-FR', { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-          })}</div>
+          <div class="date">${new Date().toLocaleDateString('fr-FR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })}</div>
           <table>
             <thead>
               <tr>
@@ -174,7 +178,7 @@ const DashboardTab = () => {
         </body>
       </html>
     `;
-    
+
     printWindow.document.write(printContent);
     printWindow.document.close();
     printWindow.focus();
@@ -186,7 +190,7 @@ const DashboardTab = () => {
 
   const handlePrintWorstStudents = () => {
     const printWindow = window.open('', '', 'width=800,height=600');
-    
+
     const printContent = `
       <!DOCTYPE html>
       <html>
@@ -247,11 +251,11 @@ const DashboardTab = () => {
         </head>
         <body>
           <h1>Stagiaires À Surveiller Cette Semaine</h1>
-          <div class="date">${new Date().toLocaleDateString('fr-FR', { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-          })}</div>
+          <div class="date">${new Date().toLocaleDateString('fr-FR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })}</div>
           <table>
             <thead>
               <tr>
@@ -277,7 +281,7 @@ const DashboardTab = () => {
         </body>
       </html>
     `;
-    
+
     printWindow.document.write(printContent);
     printWindow.document.close();
     printWindow.focus();
@@ -301,19 +305,19 @@ const DashboardTab = () => {
         <div className="card">
           <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'nowrap', gap: '12px' }}>
             <h2 style={{ margin: 0, whiteSpace: 'nowrap', overflow: 'visible', flexShrink: 0, fontSize: '18px' }}>Meilleurs Stagiaires</h2>
-            <button 
-              className="btn btn-sm" 
+            <button
+              className="btn btn-sm"
               onClick={handlePrintTopStudents}
               style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}
             >
               <Printer size={14} /> Imprimer
             </button>
           </div>
-          
-          {formattedTopStudents && formattedTopStudents?.length === 0 ? ( 
+
+          {formattedTopStudents && formattedTopStudents?.length === 0 ? (
             <p style={{ color: 'var(--text-muted)' }}>Aucune donnée</p>
-          ) : (  
-             formattedTopStudents.slice(0,5).map((t, i) => (
+          ) : (
+            formattedTopStudents.slice(0, 5).map((t, i) => (
               <div
                 key={t.id}
                 style={{
@@ -342,19 +346,19 @@ const DashboardTab = () => {
         <div className="card">
           <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'nowrap', gap: '12px' }}>
             <h2 style={{ margin: 0, whiteSpace: 'nowrap', overflow: 'visible', flexShrink: 0, fontSize: '18px' }}>Stagiaires À Surveiller Cette Semaine</h2>
-            <button 
-              className="btn btn-sm" 
+            <button
+              className="btn btn-sm"
               onClick={handlePrintWorstStudents}
               style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}
             >
               <Printer size={14} /> Imprimer
             </button>
           </div>
-          
-          { formattedWorstStudents && formattedWorstStudents.length === 0 ? (
-          <p style={{ color: 'var(--text-muted)' }}>Aucune donnée</p>
-          ) : ( 
-            formattedWorstStudents.slice(0,5).map((t, i) => (
+
+          {formattedWorstStudents && formattedWorstStudents.length === 0 ? (
+            <p style={{ color: 'var(--text-muted)' }}>Aucune donnée</p>
+          ) : (
+            formattedWorstStudents.slice(0, 5).map((t, i) => (
               <div
                 key={t.id}
                 style={{
@@ -381,6 +385,85 @@ const DashboardTab = () => {
           )}
         </div>
       </div>
+
+      {/* <div className="grid-2">
+        <div className="card">
+          <h3 style={{ marginBottom: 16 }}>Distribution des sanctions</h3>
+          <div style={{ display: 'grid', gap: 12 }}>
+            {Object.entries(sanctionDistribution).map(([code, count]) => (
+              <div key={code} style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                padding: 12,
+                background: 'rgba(58,124,165,0.05)',
+                borderRadius: 'var(--radius)'
+              }}>
+                <div style={{
+                  minWidth: 100,
+                  fontWeight: 600,
+                  color: 'var(--primary)'
+                }}>
+                  {code}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{
+                    height: 24,
+                    background: 'var(--accent)',
+                    borderRadius: 4,
+                    width: `${(count / trainees.length) * 100}%`,
+                    transition: 'width 0.3s ease'
+                  }} />
+                </div>
+                <div style={{ minWidth: 60, textAlign: 'right', fontWeight: 700 }}>
+                  {count} ({((count / trainees.length) * 100).toFixed(1)}%)
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="card">
+          <h3 style={{ marginBottom: 16 }}>Comparaison des groupes</h3>
+          <div style={{ display: 'grid', gap: 12 }}>
+            {Object.entries(groupStats).map(([group, stats]) => {
+              const avg = stats.total / stats.count;
+              return (
+                <div key={group} style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  padding: 12,
+                  background: 'rgba(58,124,165,0.05)',
+                  borderRadius: 'var(--radius)'
+                }}>
+                  <div style={{
+                    minWidth: 150,
+                    fontWeight: 600,
+                    color: 'var(--primary)'
+                  }}>
+                    {group}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{
+                      height: 24,
+                      background: avg >= 5 ? 'var(--danger)' : avg >= 3 ? 'var(--warning)' : 'var(--success)',
+                      borderRadius: 4,
+                      width: `${Math.min((avg / 10) * 100, 100)}%`,
+                      transition: 'width 0.3s ease'
+                    }} />
+                  </div>
+                  <div style={{ minWidth: 100, textAlign: 'right' }}>
+                    <div style={{ fontWeight: 700 }}>{avg.toFixed(2)} jours</div>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{stats.count} élèves</div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+      </div> */}
     </>
   );
 };

@@ -5,6 +5,7 @@ import api from '../../../services/http';
 import { formatstudents } from '../../utils/calculation';
 import { DEFAULT_SANCTION_CONFIG } from '../../utils/constants';
 import { fetchWorstStudents } from '../../utils/storage';
+import { Book, Download, Plus, Sheet } from 'lucide-react';
 
 const StudentsTab = () => {
   const locate = useLocation();
@@ -30,22 +31,22 @@ const StudentsTab = () => {
   useEffect(() => {
     const loadStudents = async () => {
       if (!classe) return;
-      
+
       setLoading(true);
 
       try {
         let formattedData = []
-        
-        if(classe === "latest"){
-          formattedData = formatstudents(JSON.parse(localStorage.getItem('worstData'))) 
-        }else{
-        const targetUrl = `/students/classes/${classe}`;
 
-        const response = await api.get(targetUrl);
-        const data = response.data.data || response.data;
+        if (classe === "latest") {
+          formattedData = formatstudents(JSON.parse(localStorage.getItem('worstData')))
+        } else {
+          const targetUrl = `/students/classes/${classe}`;
+
+          const response = await api.get(targetUrl);
+          const data = response.data.data || response.data;
 
 
-        formattedData = formatstudents(data);
+          formattedData = formatstudents(data);
         }
         setTrainees(formattedData);
         setFilTrainees(formattedData);
@@ -82,7 +83,7 @@ const StudentsTab = () => {
   }, [filters, trainees]);
 
 
-  
+
   const handleGroupChange = (e) => {
     const newGroup = e.target.value;
     if (newGroup === "") {
@@ -136,16 +137,19 @@ const StudentsTab = () => {
             />
 
           </div>
-          {/* 
-          <button className="btn" onClick={onAddClick}>
-            <Plus size={16} /> Ajouter
-          </button> */}
 
-          {/* {onExport && (
-            <button className="btn btn-success" onClick={onExport}>
-              <Download size={16} /> Exporter
-            </button>
-          )} */}
+          <button className="btn" >
+            <Plus size={16} /> Ajouter
+          </button>
+
+          <button className="btn btn-success" >
+            <Download size={16} /> Exporter
+          </button>
+
+          <button className="btn btn-success" >
+            <Sheet size={16} /> imprimer
+          </button>
+
         </div>
       </div>
 

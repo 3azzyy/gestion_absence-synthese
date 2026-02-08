@@ -20,13 +20,13 @@ const TabsNavigation = ({ currentUser }) => {
         <Users size={16} style={iconStyle} /> Stagiaires
       </NavLink>
       
-      <NavLink to="/analytics" className={({ isActive }) => `tab ${isActive ? 'active' : ''}`}>
+      {/* <NavLink to="/analytics" className={({ isActive }) => `tab ${isActive ? 'active' : ''}`}>
         <BarChart3 size={16} style={iconStyle} /> Analyses
-      </NavLink>
+      </NavLink> */}
       
-      <NavLink to="/print" className={({ isActive }) => `tab ${isActive ? 'active' : ''}`}>
+      {/* <NavLink to="/print" className={({ isActive }) => `tab ${isActive ? 'active' : ''}`}>
         <Printer size={16} style={iconStyle} /> Impressions
-      </NavLink>
+      </NavLink> */}
       
       {/* Admin Only Routes */}
       {currentUser?.role === 'admin' && (
