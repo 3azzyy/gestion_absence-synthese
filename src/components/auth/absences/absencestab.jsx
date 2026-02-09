@@ -5,7 +5,7 @@ import AbsenceTable from "./absencestable";
 
 export default function Absence() {
   const [absences, setAbsences] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [groups, setGroups] = useState([]);
 
   const [pagination, setPagination] = useState({

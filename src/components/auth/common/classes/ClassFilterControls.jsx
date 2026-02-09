@@ -120,6 +120,7 @@ const ClassFilterControls = ({
                 <option value="">Tous Les Groupes</option>
                 <option value="1er année">1er année</option>
                 <option value="2ème année">2ème année</option>
+                <option value="3ème année">3ème année</option>
               </select>
               <button 
                 className="btn" 
@@ -185,6 +186,7 @@ const ClassFilterControls = ({
                     <option value="">Sélectionner l'année</option>
                     <option value="1er année">1er année</option>
                     <option value="2ème année">2ème année</option>
+                    <option value="3ème année">3ème année</option>
                   </select>
                 </div>
               </div>

@@ -14,41 +14,58 @@ const DashboardTab = () => {
   const [avgAttendance, setAvgAttendance] = useState(stats?.total > 0 ? (stats?.totalHours / stats.total).toFixed(1) : 0);
   const [formattedWorstStudents, setFormattedWorstStudents] = useState([]);
   const [formattedTopStudents, setFormattedTopStudents] = useState([]);
+  const [Loading , setLoading] = useState(true)
 
   const sanctionDistribution = []
   const groupStats = []
 
   useEffect(() => {
+    const initDashboard = async () => {
+      setLoading(true);
+      try {
+        // 1. Check if we have data in localStorage first to show it immediately
+        const localStats = localStorage.getItem("statsData");
+        const localWorst = localStorage.getItem("worstData");
+        const localTop = localStorage.getItem("topData");
 
-    const fetchall = async () => {
-      await fetchWeeklyStats();
-      await fetchTopStudents();
-      await fetchWorstStudents();
-    }
+        if (localStats) setStats(JSON.parse(localStats));
+        if (localWorst) {
+          const parsedWorst = JSON.parse(localWorst);
+          setWorstStudents(parsedWorst);
+          setFormattedWorstStudents(formatstudents(parsedWorst));
+        }
+        if (localTop) {
+          const parsedTop = JSON.parse(localTop);
+          setTopStudents(parsedTop);
+          setFormattedTopStudents(formatstudents(parsedTop));
+        }
 
-    fetchall();
-  }, [])
+        // 2. Fetch fresh data from API in parallel
+        const [statsData, worstData, topData] = await Promise.all([
+          fetchWeeklyStats(),
+          fetchWorstStudents(),
+          fetchTopStudents()
+        ]);
 
+        // 3. Update state and localStorage with fresh data
+        setStats(statsData);
+        setWorstStudents(worstData);
+        setTopStudents(topData);
 
-  useEffect(() => {
-    const loadData = async () => {
-      // Await the data from your functions
-      const statsData = 'statsData' in localStorage ? JSON.parse(localStorage.getItem("statsData")) : await fetchWeeklyStats();
-      const worstData = 'worstData' in localStorage ? JSON.parse(localStorage.getItem("worstData")) : await fetchWorstStudents();
-      const topData = 'topData' in localStorage ? JSON.parse(localStorage.getItem("topData")) : await fetchTopStudents();
+        setAvgAttendance(statsData?.total > 0 ? (statsData?.totalHours / statsData.total).toFixed(1) : 0);
 
-      // Now update the states with actual data, not Promises
-      setStats(statsData);
-      setWorstStudents(worstData);
-      setTopStudents(topData);
-      setAvgAttendance(statsData?.total > 0 ? (statsData?.totalHours / statsData.total).toFixed(1) : 0);
-      // Format the lists only after you have the data
-      setFormattedWorstStudents(formatstudents(worstData));
-      setFormattedTopStudents(formatstudents(topData));
+        setFormattedWorstStudents(formatstudents(worstData));
+        setFormattedTopStudents(formatstudents(topData));
+
+      } catch (error) {
+        console.error("Dashboard initialization failed:", error);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    loadData();
-  }, []);
+    initDashboard();
+  }, []); // Runs only once on mount
 
   const fetchWeeklyStats = async () => {
     try {
@@ -316,7 +333,7 @@ const DashboardTab = () => {
 
           {formattedTopStudents && formattedTopStudents?.length === 0 ? (
             <p style={{ color: 'var(--text-muted)' }}>Aucune donnée</p>
-          ) : (
+          ) : ( Loading ? <p style={{ color: 'var(--text-muted)' }}>chargement</p>:
             formattedTopStudents.slice(0, 5).map((t, i) => (
               <div
                 key={t.id}
@@ -357,7 +374,7 @@ const DashboardTab = () => {
 
           {formattedWorstStudents && formattedWorstStudents.length === 0 ? (
             <p style={{ color: 'var(--text-muted)' }}>Aucune donnée</p>
-          ) : (
+          ) : (Loading ? <p style={{ color: 'var(--text-muted)' }}>chargement</p>:
             formattedWorstStudents.slice(0, 5).map((t, i) => (
               <div
                 key={t.id}
