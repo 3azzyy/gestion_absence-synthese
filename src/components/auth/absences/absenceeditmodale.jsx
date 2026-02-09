@@ -24,15 +24,17 @@ export default function EditAbs({ ABS, CLOSE, onUpdate }) {
             await api.put(`/absences/${form.id}`, form);
 
             if (onUpdate) onUpdate();
-            fetchWeeklyStats();
-            fetchWorstStudents();
-            fetchTopStudents();
+
             window.location.reload();
             CLOSE();
         } catch (error) {
             console.error("Update failed:", error);
             alert("Erreur lors de la modification");
         } finally {
+
+            fetchWeeklyStats();
+            fetchWorstStudents();
+            fetchTopStudents();
             setSubmitting(false);
         }
     };

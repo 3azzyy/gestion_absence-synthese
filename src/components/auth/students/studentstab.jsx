@@ -186,15 +186,16 @@ const StudentsTab = () => {
   const convertToCSV = (data) => {
     if (!data || data.length === 0) return '';
     
-    const headers = ['Nom Complet', 'Groupe', 'Heures', 'Retards', 'Jours', 'Assiduité', 'Niveau'];
+    const headers = ['Cef' ,'Nom Complet', 'Groupe', 'Heures', 'Retards', 'Jours', 'Assiduité'];
     const rows = data.map(t => [
+      String(t.cef || '').trim(),
       t.name || '',
       t.group || '',
       t.hours || 0,
       t.delays || 0,
       t.days || 0,
       t.sanction?.label || '',
-      t.level || ''
+      
     ]);
     
     return [
@@ -326,18 +327,19 @@ const StudentsTab = () => {
           <table>
             <thead>
               <tr>
+                <th>Cef</th>
                 <th>Nom Complet</th>
                 <th>Groupe</th>
                 <th>Heures</th>
                 <th>Retards</th>
                 <th>Jours</th>
                 <th>Assiduité</th>
-                <th>Niveau</th>
               </tr>
             </thead>
             <tbody>
               ${filTrainees.map(trainee => `
                 <tr>
+                  <td>${trainee.cef || '-'}</td>
                   <td>${trainee.name || '-'}</td>
                   <td>${trainee.group || '-'}</td>
                   <td>${trainee.hours || 0}</td>
@@ -345,12 +347,12 @@ const StudentsTab = () => {
                   <td>${trainee.days || 0}</td>
                   <td>
                     ${trainee.sanction ? `
-                      <span class="badge" style="background-color: ${trainee.sanction.color || '#6c757d'}">
+                      <span class="badge" style="background-color: ${trainee.sanction.color || '#6c757d'} ; color :${trainee.sanction.color === "#2e7d32"? "white": "rgb(175, 70, 70)"} ">
                         ${trainee.sanction.label}
                       </span>
                     ` : '-'}
                   </td>
-                  <td>${trainee.level || '-'}</td>
+                  
                 </tr>
               `).join('')}
             </tbody>
