@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, X } from 'lucide-react';
+import api from '../../../../services/http'
 
 const ClassFilterControls = ({
   searchInput,
@@ -31,7 +32,7 @@ const ClassFilterControls = ({
   const checkGroupExists = (name) => {
     // Get existing groups from localStorage
     const existingGroups = JSON.parse(localStorage.getItem('classlist') || '[]');
-    return existingGroups.some(group => 
+    return existingGroups.some(group =>
       group.name.toLowerCase() === name.toLowerCase()
     );
   };
@@ -40,51 +41,34 @@ const ClassFilterControls = ({
     e.preventDefault();
     setError('');
 
-    // Validation
     if (!groupName.trim()) {
       setError('Veuillez entrer le nom du groupe');
-      return;
-    }
-
-    if (!groupYear) {
-      setError('Veuillez sélectionner l\'année');
-      return;
-    }
-
-    // Check if group exists
-    if (checkGroupExists(groupName.trim())) {
-      setError('Ce groupe existe déjà');
       return;
     }
 
     setSubmitting(true);
 
     try {
-      const newGroup = {
-        id: Date.now(), // Generate unique ID
+      // 1. Send to Backend
+      // This ensures the database creates the ID and the record
+      const response = await api.post('/groups', {
         name: groupName.trim(),
         year: groupYear
-      };
+      });
 
-      // Get existing groups
+      const newGroup = response.data.data; // The real group from Laravel with real ID
+
+      // 2. Update LocalStorage for the dropdowns
       const existingGroups = JSON.parse(localStorage.getItem('classlist') || '[]');
-      
-      // Add new group
-      const updatedGroups = [...existingGroups, newGroup];
-      
-      // Save to localStorage
+      const updatedGroups = [...existingGroups, { id: newGroup.id, name: newGroup.name }];
       localStorage.setItem('classlist', JSON.stringify(updatedGroups));
-
-      // Call parent callback if provided
-      if (onAddGroup) {
-        await onAddGroup(newGroup);
-      }
 
       alert('Groupe ajouté avec succès!');
       handleCloseModal();
     } catch (error) {
-      console.error('Error adding group:', error);
-      setError('Erreur lors de l\'ajout du groupe');
+      console.log(error)
+      const msg = error.response?.data?.message || 'Erreur lors de l\'ajout du groupe';
+      setError(msg);
     } finally {
       setSubmitting(false);
     }
@@ -96,7 +80,7 @@ const ClassFilterControls = ({
         <div className="controls-grid">
           <div className="form-group">
             <label className="form-label">Rechercher une classe</label>
-            <div 
+            <div
               style={{
                 display: 'flex',
                 width: '100%',
@@ -104,17 +88,17 @@ const ClassFilterControls = ({
                 alignItems: 'flex-end'
               }}
             >
-              <input 
+              <input
                 style={{ flex: 1 }}
                 className="input"
                 placeholder="Nom de la classe..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
               />
-              <select 
-                className="input" 
-                style={{ flex: 1 }} 
-                value={yearFilter} 
+              <select
+                className="input"
+                style={{ flex: 1 }}
+                value={yearFilter}
                 onChange={(e) => setYearFilter(e.target.value)}
               >
                 <option value="">Tous Les Groupes</option>
@@ -122,8 +106,8 @@ const ClassFilterControls = ({
                 <option value="2ème année">2ème année</option>
                 <option value="3ème année">3ème année</option>
               </select>
-              <button 
-                className="btn" 
+              <button
+                className="btn"
                 onClick={handleOpenModal}
                 style={{ whiteSpace: 'nowrap' }}
               >
@@ -192,16 +176,16 @@ const ClassFilterControls = ({
               </div>
 
               <div className="modal-footer">
-                <button 
-                  type="button" 
-                  className="btn btn-secondary" 
+                <button
+                  type="button"
+                  className="btn btn-secondary"
                   onClick={handleCloseModal}
                   disabled={submitting}
                 >
                   Annuler
                 </button>
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   className="btn btn-primary"
                   disabled={submitting}
                 >

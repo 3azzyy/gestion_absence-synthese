@@ -153,11 +153,12 @@ const StudentsTab = () => {
 
     try {
       const studentData = {
-        cef: formData.cef,
-        prenom: formData.prenom,
-        nom: formData.nom,
+        cef: String(formData.cef).trim(),
+        first_name: formData.prenom,
+        last_name: formData.nom,
         cin: formData.cin,
-        group: formData.groupType === 'existing' ? formData.existingGroup : formData.newGroup
+        groupType : formData.groupType,
+        class_group: formData.groupType === 'existing' ? formData.existingGroup : formData.newGroup
       };
 
       // Make API call to add student
@@ -165,6 +166,13 @@ const StudentsTab = () => {
       
       console.log('Student added:', response.data);
       alert('Stagiaire ajouté avec succès!');
+      
+      // If it was a new group, we should update our local list of groups
+      if (formData.groupType === 'nouveau') {
+      const updatedGroups = [...groups, { name: formData.newGroup }];
+      setGroups(updatedGroups);
+      localStorage.setItem('classlist', JSON.stringify(updatedGroups));
+    }
       
       // Refresh the student list
       const targetUrl = `/students/classes/${classe}`;
@@ -475,7 +483,7 @@ const StudentsTab = () => {
                   <div className="form-group">
                     <label className="form-label">CEF <span style={{ color: 'red' }}>*</span></label>
                     <input
-                      type="text"
+                      type="number"
                       name="cef"
                       className="input"
                       placeholder="Entrer le CEF"

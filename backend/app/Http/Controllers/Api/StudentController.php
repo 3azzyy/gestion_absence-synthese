@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Group;
 use App\Models\Student;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -49,24 +50,51 @@ class StudentController extends Controller
     }
 
     public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'cef' => 'required|string|unique:students',
-            'first_name' => 'required|string',
-            'last_name' => 'required|string',
-            'group_id' => 'nullable|exists:groups,id',
-            'email' => 'nullable|email',
-            'cin' => 'nullable|string',
-        ]);
+{
+    // Validate including the new group logic fields
+    $validated = $request->validate([
+        'cef' => 'required|string|unique:students,cef',
+        'first_name' => 'required|string',
+        'last_name' => 'required|string',
+        'cin' => 'nullable|string',
+        'class_group' => 'required|string', // The name of the group (existing or new)
+    ]);
 
-        $student = Student::create($validated);
+    try {
+        return DB::transaction(function () use ($request, $validated) {
+            // 1. Find or create the group by name
+            // This handles the "groupType" logic automatically
+            $group = Group::firstOrCreate(
+                ['name' => $request->class_group],
+                ['description' => 'Groupe créé automatiquement via l\'ajout de stagiaire']
+            );
 
+            // 2. Create the student and link the group_id
+            $student = Student::create([
+                'cef' => $validated['cef'],
+                'first_name' => $validated['first_name'],
+                'last_name' => $validated['last_name'],
+                'cin' => $validated['cin'],
+                'group_id' => $group->id,      // Linking the foreign key
+                'class_group' => $group->name, // Keeping your denormalized column in sync
+                'hours' => 0,
+                'tardies' => 0,
+                'days_absent' => 0,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'data' => $student,
+                'message' => 'Stagiaire ajouté et groupe lié avec succès'
+            ], 201);
+        });
+    } catch (\Exception $e) {
         return response()->json([
-            'success' => true,
-            'data' => $student,
-            'message' => 'Student created successfully'
-        ], 201);
+            'success' => false,
+            'message' => 'Erreur lors de la création: ' . $e->getMessage()
+        ], 500);
     }
+}
 
     public function show($id)
     {

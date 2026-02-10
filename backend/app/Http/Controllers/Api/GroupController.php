@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\Group;
 use Illuminate\Http\Request;
@@ -29,16 +30,21 @@ class GroupController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|unique:groups',
-            'description' => 'nullable|string',
+            'name' => 'required|string|unique:groups,name',
         ]);
 
-        $group = Group::create($validated);
+        // Using the Facade makes it clear to Intelephense that this returns an ID
+        $authId = Auth::id() ?? 'System';
+
+        $group = Group::create([
+            'name' => $validated['name'],
+            'description' => "Manually created by user ID: " . $authId,
+        ]);
 
         return response()->json([
             'success' => true,
             'data' => $group,
-            'message' => 'Group created successfully',
+            'message' => 'Groupe créé avec succès'
         ], 201);
     }
 
@@ -63,7 +69,7 @@ class GroupController extends Controller
     public function destroy($id)
     {
         $group = Group::findOrFail($id);
-        
+
         if ($group->students()->count() > 0) {
             return response()->json([
                 'success' => false,
