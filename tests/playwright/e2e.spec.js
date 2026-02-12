@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-const API = 'http://127.0.0.1:8000/api';
+const API = 'https://absence.compusmanager.com/api';
 
 function toTrainee(student) {
   return {

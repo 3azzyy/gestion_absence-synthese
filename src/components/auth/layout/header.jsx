@@ -23,22 +23,30 @@ const Header = ({
     <div className="page-header">
       <div className="header-top">
         <div>
-          <h1 className="header-title">Système Complet de Gestion des Absences</h1>
+          <h1 className="header-title">Système de Gestion des Absences</h1>
           <p className="header-subtitle">
-            Année académique {settings?.year || '2025'} — Suivi avancé des présences
+            Année de formation 25/26 — Suivi des stagiaires
           </p>
           <span className="header-rule">
-            Règle: {settings?.hoursPerDay || 10}h = 1j • {settings?.retardsPerDay || 4} retards = 1j
+            Règle: 5h = 1j • 4 retards = 1j
           </span>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'flex-end' }}>
+        <div style={{ display: 'flex', flexDirection: 'row', gap: '12px', alignItems: 'flex-end' }}>
           <div className="user-badge">
             <Users size={16} />
             <span>{displayName}{displayRole}</span>
           </div>
+          <button
+            className="icon-btn"
+            onClick={onLogout}
+            title="Déconnexion"
+            style={{ background: '#dc3545', color: 'white', borderColor: '#dc3545' }}
+          >
+            <LogOut size={16} />
+          </button>
 
-          <div className="header-actions">
+          {/* <div className="header-actions">
             <button className="icon-btn" onClick={onSettingsClick} title="Paramètres">
               <Settings size={18} />
             </button>
@@ -63,18 +71,11 @@ const Header = ({
               <Undo size={18} />
             </button>
 
-            <button
-              className="icon-btn"
-              onClick={onLogout}
-              title="Déconnexion"
-              style={{ background: '#dc3545', color: 'white', borderColor: '#dc3545' }}
-            >
-              <LogOut size={18} />
-            </button>
-          </div>
+            
+          </div> */}
         </div>
       </div>
-    
+
 
     </div>
   );

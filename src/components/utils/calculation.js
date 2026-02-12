@@ -69,7 +69,8 @@ export const formatstudents = (students) => {
     days: parseFloat(student.days_absent) || 0,
     heures: parseFloat(student.hours) || 0,
     retards: student.tardies || 0,
-    attendance: Math.max(0, 10 - (student.hours) / 10), // Assuming 10 hours = 1 day
+    observations : student.observation,
+    attendance: Math.max(0, 10 - student.days_absent), // Assuming 10 hours = 1 day
     group: student.group?.name || student.class_group || 'Sans Groupe',
     absenceHistory: student.absences || []
   }

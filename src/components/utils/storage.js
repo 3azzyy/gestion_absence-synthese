@@ -4,7 +4,7 @@ import axios from 'axios';
 
 const AUTH_KEY = 'ista_auth_session';
 const USERS_KEY = 'ista_users';
-const BASE_URL = 'http://127.0.0.1:8000/api';
+const BASE_URL = 'https://absence.compusmanager.com/api';
 
 // =============================================
 // USER MANAGEMENT (LOCAL STORAGE)

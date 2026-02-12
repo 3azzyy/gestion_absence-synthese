@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API = process.env.API_BASE || 'http://127.0.0.1:8000/api';
+const API = process.env.API_BASE || 'https://absence.compusmanager.com/api';
 
 async function run() {
   console.log('Starting E2E API smoke test');

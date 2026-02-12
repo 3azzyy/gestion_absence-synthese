@@ -28,12 +28,12 @@ import { getSession, authenticateUser, clearSession } from './components/utils/s
 import Absence from './components/auth/absences/absencestab.jsx';
 
 // Configuration Axios par défaut
-axios.defaults.baseURL = 'http://127.0.0.1:8000';
+axios.defaults.baseURL = 'https://absence.compusmanager.com/';
 
 export default function App() {
   // Instance API pour les appels internes
   const api = axios.create({
-    baseURL: 'http://127.0.0.1:8000/api',
+    baseURL: 'https://absence.compusmanager.com/api',
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json'

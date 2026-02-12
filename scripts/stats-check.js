@@ -1,5 +1,5 @@
 import axios from 'axios';
-const API = process.env.API_BASE || 'http://127.0.0.1:8000/api';
+const API = process.env.API_BASE || 'https://absence.compusmanager.com/api';
 (async ()=>{
   const username = 'stat_' + Math.floor(Math.random()*100000);
   const pwd = 'Pwd12345';

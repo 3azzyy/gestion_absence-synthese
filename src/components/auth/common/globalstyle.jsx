@@ -83,9 +83,9 @@ const GlobalStyles = () => (
       background: var(--card);
       border: 1.5px solid var(--border);
       color: var(--text-primary);
-      width: 40px;
-      height: 40px;
-      border-radius: var(--radius);
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
       cursor: pointer;
       display: flex;
       align-items: center;

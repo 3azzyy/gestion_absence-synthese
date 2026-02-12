@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Eye, Edit2, Trash2, Plus } from 'lucide-react';
 import AddAbsenceModal from '../modals/AddAbsenceModal';
 import ViewAbsencesModal from '../modals/ViewAbsencesModal';
+import api from '../../../services/http';
 
 const StudentRow = ({ trainee }) => {
   const t = trainee;
@@ -9,8 +10,27 @@ const StudentRow = ({ trainee }) => {
   const [showAbsenceModal, setShowAbsenceModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [selectedTrainee, setSelectedTrainee] = useState(null);
-  
-    // Ouvrir le modal d'ajout d'absence
+
+  const Changeobservation = async (e, id) => {
+    try {
+        const response = await api.put('/students/observation', { 
+            id: id, 
+            observation: e.target.value 
+        });
+
+        // Use response.data because that's where Axios puts the Laravel JSON
+        if (response.data.success) {
+            
+            console.log('Observation updated:', response.data.data);
+            window.location.reload()
+        }
+    } catch (error) {
+        // Handle the case where the server returns an error (like 419 or 500)
+        console.error('Update failed:', error.response?.data?.message || 'Error');
+    }
+}
+
+  // Ouvrir le modal d'ajout d'absence
   const handleAddAbsence = (traineeId) => {
     setSelectedTrainee(traineeId);
     setShowAbsenceModal(true);
@@ -21,8 +41,8 @@ const StudentRow = ({ trainee }) => {
     setSelectedTrainee(traineeId);
     setShowViewModal(true);
   };
-  return ( <>
-    <tr className={t.days >= 5 ? 'at-risk' : ''}>
+  return (<>
+    <tr className={t.days >= 5 ? 'at-risk' : ''} style={{backgroundColor: t.observation === "depertition" ? "#fff4d0" : "white"  }}>
       <td><strong>{t.name}</strong></td>
       <td>{t.group}</td>
       <td>{t.heures.toFixed(1)}</td>
@@ -41,19 +61,19 @@ const StudentRow = ({ trainee }) => {
         {t.attendance.toFixed(2)}/10
       </td>
       <td>
-        <span 
-          className="status-badge" 
-          style={{background: t.sanction.color, minWidth: 'auto', padding: '4px 8px', color: t.sanction.color == "#2e7d32" ? '#ffffff' : '#af4646'}}
+        <span
+          className="status-badge"
+          style={{ background: t.sanction.color, minWidth: 'auto', padding: '4px 8px', color: t.sanction.color == "#2e7d32" ? '#ffffff' : '#af4646' }}
         >
           {t.sanction.label}
         </span>
       </td>
-      <td style={{ 
-        display:"flex",
-        gap:"5px",
-        justifyContent:"center",
-       }}>
-        <button className="btn btn-sm btn-secondary" onClick={() => handleAddAbsence(t)} style={{marginLeft: 4}}>
+      <td style={{
+        display: "flex",
+        gap: "5px",
+        justifyContent: "center",
+      }}>
+        <button className="btn btn-sm btn-secondary" onClick={() => handleAddAbsence(t)} style={{ marginLeft: 4 }}>
           <Plus size={14} /> Ajouter Absence
         </button>
         <span></span>
@@ -64,10 +84,16 @@ const StudentRow = ({ trainee }) => {
           <Trash2 size={14} />
         </button> */}
       </td>
+      <td>
+        <select style={{padding : "0px 14px" }} value={t.observations} onChange={(e) => Changeobservation(e, t.id)}>
+          <option value="en_formation">En formation</option>
+          <option value="depertition">Depertition</option>
+        </select>
+      </td>
     </tr>
 
 
-      {/* Modal Row */}
+    {/* Modal Row */}
     {(showAbsenceModal || showViewModal) && (
       <tr>
         <td colSpan="8" style={{ padding: 0, border: 0 }}>
@@ -86,7 +112,7 @@ const StudentRow = ({ trainee }) => {
         </td>
       </tr>
     )}
-      </>
+  </>
   );
 };
 

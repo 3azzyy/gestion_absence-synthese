@@ -22,6 +22,7 @@ const StudentsTable = ({ trainees, onEditClick, onDeleteClick, onViewClick }) =>
           <th>Assiduité</th>
           <th>Niveau</th>
           <th>Actions</th>
+          <th>Observation</th>
         </tr>
       </thead>
       <tbody>
