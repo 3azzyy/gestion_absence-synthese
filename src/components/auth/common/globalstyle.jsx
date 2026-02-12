@@ -186,7 +186,7 @@ const GlobalStyles = () => (
       font-size: 14px;
       font-family: inherit;
       transition: all 0.2s ease;
-      box-shadow: var(--shadow);
+      box-shadow: var(--shadow); 
       display: inline-flex;
       align-items: center;
       gap: 8px;

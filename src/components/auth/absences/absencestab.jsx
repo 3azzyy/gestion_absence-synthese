@@ -157,8 +157,10 @@ export default function Absence() {
               onChange={(e) => setFilters({ ...filters, input: e.target.value })}
             />
           </div>
+
+          <button className="btn" style={{justifyContent: "center" }} onClick={() => handlereset()}>Remetter a nouveau</button>
         </div>
-        <button onClick={() => handlereset()}>Remetter a nouveau</button>
+        
       </div>
 
       <div className="card" style={{ marginTop: '20px' }}>

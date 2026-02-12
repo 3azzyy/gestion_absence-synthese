@@ -28,7 +28,7 @@ const StudentsTable = ({ trainees, onEditClick, onDeleteClick, onViewClick }) =>
       <tbody>
         {trainees.length === 0 ? (
           <tr>
-            <td colSpan="8" style={{padding: 0}}>
+            <td colSpan="9" style={{padding: 0}}>
               <EmptyState 
                 message="Aucun stagiaire trouvé"
                 description="Commencez par ajouter des stagiaires ou ajustez vos filtres"
