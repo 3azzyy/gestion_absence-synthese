@@ -20,7 +20,7 @@ def generate_school_dates(start_date_str='2025-09-11', num_days=260):
 def list_available_classes(excel_path):
     try:
         workbook = openpyxl.load_workbook(excel_path, read_only=True)
-        skip_sheets = ['Feuil1', 'Feuil2', 'DEVOWFS101']
+        skip_sheets = ['Feuil1', 'Feuil2']
         classes = [sheet for sheet in workbook.sheetnames if sheet not in skip_sheets]
         workbook.close()
         return classes
