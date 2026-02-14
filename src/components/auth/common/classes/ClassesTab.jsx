@@ -30,14 +30,30 @@ const ClassesTab = () => {
     loadGroups();
   }, []);
 
-  const yearLabel = (classe) => {
-    if (classe && classe.name) {
-      if (classe.name.includes('10')) return "1er année";
-      if (classe.name.includes('20')) return "2ème année";
-      if (classe.name.includes('30')) return "3ème année";
-      else return "n/a";
-    }
+  const yearLabel = (classee) => {
+  if (!classee) return "n/a" ;
+
+  // Regex : ([A-Z]+) capture les lettres, ([0-9]+) capture les chiffres
+  const match = classee.match(/^([A-Za-z]+)([0-9]+)$/);
+
+  if (match) {
+    const filiere = match[1]; // ex: DEV
+    const numero = match[2];  // ex: 101
+    
+    // Déterminer l'année selon le premier chiffre du numéro
+    const firstDigit = numero.charAt(0);
+    const labels = {
+      '1': "1er année",
+      '2': "2ème année",
+      '3': "3ème année"
+    };
+
+    return labels[firstDigit] || "n/a"
+    
   }
+
+  return "n/a";
+};
 
   // 2. Filter Logic: Runs whenever searchInput, yearFilter, or the master list changes
   useEffect(() => {
@@ -52,7 +68,7 @@ const ClassesTab = () => {
 
     if (yearFilter) {
       result = result.filter(group =>{ 
-        const year = yearLabel(group)
+        const year = yearLabel(group.name)
         return year === yearFilter
       }
       );

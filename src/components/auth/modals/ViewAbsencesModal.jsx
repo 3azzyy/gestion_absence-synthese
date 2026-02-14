@@ -256,13 +256,15 @@ const ViewAbsencesModal = ({ trainee, onClose }) => {
         </head>
         <body>
           <div class="header">
-          <h1>Billet d'entré</h1>
+          <h1>Billet d'entrée</h1>
             <h1>Historique des Absences</h1>
             <div class="date-generated">
               Généré le ${new Date().toLocaleDateString('fr-FR', {
                 year: 'numeric',
                 month: 'long',
-                day: 'numeric'
+                day: 'numeric',
+                hour : '2-digit',
+                minute : '2-digit'
               })}
             </div>
           </div>

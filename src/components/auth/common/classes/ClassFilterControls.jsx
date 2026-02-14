@@ -7,7 +7,7 @@ const ClassFilterControls = ({
   setSearchInput,
   yearFilter,
   setYearFilter,
-  onAddGroup // Callback function to refresh groups in parent component
+  onAddGroup 
 }) => {
   const [showModal, setShowModal] = useState(false);
   const [groupName, setGroupName] = useState('');
@@ -64,6 +64,7 @@ const ClassFilterControls = ({
       localStorage.setItem('classlist', JSON.stringify(updatedGroups));
 
       alert('Groupe ajouté avec succès!');
+      window.location.reload()
       handleCloseModal();
     } catch (error) {
       console.log(error)

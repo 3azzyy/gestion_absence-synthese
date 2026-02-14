@@ -58,7 +58,7 @@ export const formatstudents = (students) => {
 
   return students.map(student => 
   {
-    const sanction = sanctionLabel(student.hours / 10 , sanctionConfig);
+    const sanction = sanctionLabel(student.days_absent , sanctionConfig);
 
     return {
     ...student,
