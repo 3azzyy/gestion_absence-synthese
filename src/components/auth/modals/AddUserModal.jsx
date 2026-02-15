@@ -6,7 +6,7 @@ const AddUserModal = ({ isOpen, onClose, onAdd }) => {
     username: '',
     password: '',
     confirmPassword: '',
-    role: 'user'
+    role: 'staff'
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -106,7 +106,7 @@ const AddUserModal = ({ isOpen, onClose, onAdd }) => {
               value={formData.role}
               onChange={(e) => setFormData({...formData, role: e.target.value})}
             >
-              <option value="user">Utilisateur</option>
+              <option value="staff">Utilisateur</option>
               <option value="admin">Administrateur</option>
             </select>
           </div>
