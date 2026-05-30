@@ -25,11 +25,13 @@ Route::middleware('auth:sanctum')->group(function () {
     // Auth routes
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
+    
 
     // Students routes
     Route::prefix('students')->group(function () {
         Route::get('/', [StudentController::class, 'index']);
         Route::get('/classes/{class}', [StudentController::class, 'byClass']);
+        Route::put('/observation', [StudentController::class, 'setObservation']);
         Route::get('/search', [StudentController::class, 'search']);
         Route::get('/export/csv', [StudentController::class, 'exportCsv']);
         Route::post('/import', [StudentController::class, 'import']);
@@ -38,6 +40,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', [StudentController::class, 'store']);
         Route::put('/{id}', [StudentController::class, 'update']);
         Route::delete('/{id}', [StudentController::class, 'destroy']);
+        Route::post('/students/{id}/restore', [StudentController::class, 'restore']);
         
         // Student absences
         Route::get('/{studentId}/absences', [AbsenceController::class, 'studentAbsences']);
@@ -59,6 +62,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', [GroupController::class, 'store']);
         Route::put('/{id}', [GroupController::class, 'update']);
         Route::delete('/{id}', [GroupController::class, 'destroy']);
+        Route::post('/{id}/restore', [GroupController::class, 'restore']);
+        Route::get('/trashed', [GroupController::class, 'trashed']);
     });
 
     // Settings routes

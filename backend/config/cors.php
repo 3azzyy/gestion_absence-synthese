@@ -19,7 +19,8 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['http://localhost:5173'],
+    'allowed_origins' => ['http://localhost:5173','https://absence.compusmanager.com',
+    'https://compusmanager.com',],
 
     'allowed_origins_patterns' => [],
 

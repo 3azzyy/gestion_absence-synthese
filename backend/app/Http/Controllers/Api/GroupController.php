@@ -47,6 +47,7 @@ class GroupController extends Controller
             'message' => 'Groupe créé avec succès'
         ], 201);
     }
+    
 
     public function update(Request $request, $id)
     {
@@ -65,23 +66,43 @@ class GroupController extends Controller
             'message' => 'Group updated successfully',
         ]);
     }
-
+    
+    
     public function destroy($id)
     {
         $group = Group::findOrFail($id);
-
-        if ($group->students()->count() > 0) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Cannot delete group with students',
-            ], 400);
-        }
-
-        $group->delete();
-
+        
+        // Le 'booted' du modèle s'occupe de supprimer les étudiants et les absences
+        $group->delete(); 
+    
         return response()->json([
             'success' => true,
-            'message' => 'Group deleted successfully',
+            'message' => 'Groupe et toutes les données associées archivés.'
         ]);
     }
+
+
+    public function restore($id)
+    {
+        // On utilise withTrashed() pour trouver le groupe dans la corbeille
+        $group = Group::withTrashed()->findOrFail($id);
+        
+        // Le 'booted' du modèle restaurera aussi les étudiants et les absences
+        $group->restore();
+    
+        return response()->json([
+            'success' => true,
+            'message' => 'Groupe et toutes les données associées restaurés.'
+        ]);
+    }
+
+
+    public function trashed()
+    {
+        // Récupère uniquement les groupes supprimés pour votre "Corbeille"
+        $groups = Group::onlyTrashed()->get();
+        return response()->json($groups);
+    }
+    
+    
 }

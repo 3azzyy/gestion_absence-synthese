@@ -92,4 +92,23 @@ class Student extends Model
     {
         return $query->where('level', $level);
     }
+    
+    protected static function booted()
+    {
+        // Déclenché lors du $student->delete()
+        static::deleting(function ($student) {
+            // Supprime toutes les absences liées à cet étudiant
+            $student->absences()->each(function ($absence) {
+                $absence->delete();
+            });
+        });
+
+        // Déclenché lors du $student->restore()
+        static::restoring(function ($student) {
+            // Restaure les absences qui ont été supprimées en même temps
+            $student->absences()->onlyTrashed()->each(function ($absence) {
+                $absence->restore();
+            });
+        });
+    }
 }

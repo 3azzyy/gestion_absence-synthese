@@ -212,12 +212,14 @@ class AbsenceController extends Controller
 
         $absences = $student->absences()->get();
 
-        $rawHours = $absences->where('status', 'absent')->sum('duration');
+        $rawHoursabs = $absences->where('status', 'absent')->sum('duration');
+        
+        $rawHourslate = $absences->where('status', 'late')->count();
 
-        $calculatedDays = ($rawHours * 2.5) / 10;
+        $calculatedDays = ($rawHoursabs / 2) + ( $rawHourslate / 4 );
 
         $student->update([
-            'hours' => $rawHours * 2.5,
+            'hours' => $rawHoursabs * 2.5,
             'tardies' => $absences->where('status', 'late')->count(),
             'days_absent' => $calculatedDays,
             'justified_absences' => $absences->where('status', 'justified')->count(),
@@ -260,7 +262,7 @@ class AbsenceController extends Controller
 
             // Attach your calculated math directly to the student object
             $student->hours = $abs->total_hours * 2.5;
-            $student->days_absent = ($abs->total_hours * 2.5) / 10;
+            $student->days_absent = $abs->total_hours / 2;
 
             $student->absences = Absence::where('student_id', $student->id)
                 ->whereBetween('date', [$start, $end])

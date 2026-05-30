@@ -106,6 +106,23 @@ class StudentController extends Controller
             'current_sanction' => $student->getCurrentSanction()
         ]);
     }
+    
+    public function setObservation(Request $request)
+    {
+        // 1. Find the student (findOrFail will throw a 404 if not found)
+        $student = Student::findOrFail($request->id);
+        
+        // 2. Perform the update with an associative array
+        $student->update([
+            'observation' => $request->observation
+        ]);
+        
+        // 3. Return the fresh data
+        return response()->json([
+            'success' => true,
+            'data' => $student->fresh(), // .fresh() ensures you return the updated values
+        ]);
+    }
 
     public function update(Request $request, $id)
     {
@@ -126,16 +143,6 @@ class StudentController extends Controller
         ]);
     }
 
-    public function destroy($id)
-    {
-        $student = Student::findOrFail($id);
-        $student->delete();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Student deleted successfully'
-        ]);
-    }
 
     public function statistics()
     {
@@ -155,9 +162,10 @@ class StudentController extends Controller
 
         // 2. Sum of all durations for 'absent' records
         $totalHours = \App\Models\Absence::where('status', 'absent')->sum('duration');
+        $totalLate =  \App\Models\Absence::where('status', 'late')->count();
 
         // 3. Count students "At Risk" (e.g., > 5 days)
-        $atRisk = Student::where('days_absent', '>', 5)->count();
+        $atRisk = Student::where('days_absent', '>', 7)->count();
 
         return response()->json([
             'success' => true,
@@ -165,7 +173,7 @@ class StudentController extends Controller
                 'total' => $total,
                 'atRisk' => $atRisk,
                 'totalHours' => $totalHours * 2.5 / 1,
-                'totalDays' => $totalHours * 2.5 / 10,
+                'totalDays' => $totalHours / 2 + $totalLate / 4,
             ]
         ]);
     }
@@ -183,7 +191,29 @@ class StudentController extends Controller
         ]);
     }
 
-
+    public function destroy($id)
+    {
+        $student = Student::findOrFail($id);
+        
+        // Supprime l'étudiant et ses absences (via le booted du modèle Student)
+        $student->delete();
+    
+        return response()->json([
+            'success' => true,
+            'message' => 'Étudiant et ses absences archivés.'
+        ]);
+    }
+    
+    public function restore($id)
+    {
+        $student = Student::withTrashed()->findOrFail($id);
+        $student->restore();
+    
+        return response()->json([
+            'success' => true,
+            'message' => 'Étudiant et ses absences restaurés.'
+        ]);
+    }
 
     public function exportCsv()
     {

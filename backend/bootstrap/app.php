@@ -13,6 +13,11 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->statefulApi();
+
+        // Add this part to stop the CSRF mismatch error
+        $middleware->validateCsrfTokens(except: [
+            'api/*', 
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
