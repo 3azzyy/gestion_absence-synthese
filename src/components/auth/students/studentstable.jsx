@@ -1,0 +1,54 @@
+import React from 'react';
+import StudentRow from './studentsrow';
+import EmptyState from './emptystates';
+
+const StudentsTable = ({ trainees, onEditClick, onDeleteClick, onViewClick }) => (
+  <div className="table-wrapper">
+    <style> 
+      {`
+        th, td {  
+          text-align: center!important;
+        }
+      `}
+    </style>
+    <table className="table">
+      <thead>
+        <tr>
+          <th>Nom complet</th>
+          <th>Groupe</th>
+          <th>Heures</th>
+          <th>Retards</th>
+          <th>Jours</th>
+          <th>Assiduité</th>
+          <th>Niveau</th>
+          <th>Actions</th>
+          <th>Observation</th>
+        </tr>
+      </thead>
+      <tbody>
+        {trainees.length === 0 ? (
+          <tr>
+            <td colSpan="9" style={{padding: 0}}>
+              <EmptyState 
+                message="Aucun stagiaire trouvé"
+                description="Commencez par ajouter des stagiaires ou ajustez vos filtres"
+              />
+            </td>
+          </tr>
+        ) : (
+          trainees.slice(0, 50).map(t => (
+            <StudentRow 
+              key={t.id}
+              trainee={t}
+              // onEditClick={onEditClick}
+              // onDeleteClick={onDeleteClick}
+              // onViewClick={onViewClick}
+            />
+          ))
+        )}
+      </tbody>
+    </table>
+  </div>
+);
+
+export default StudentsTable;
