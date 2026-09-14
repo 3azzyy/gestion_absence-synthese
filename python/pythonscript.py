@@ -150,10 +150,13 @@ def interactive_mode(excel_path, output_dir, start_date='2025-09-11'):
 
 def main():
     # --- CONFIGURE YOUR PATHS HERE ---
-    EXCEL_FILE = 'C:/Users/adams/Documents/git/absence2/python/SUIVI ABSENCE DES STAGIAIRES 2.xlsx'
-    
+    # Paths are relative to this script's own folder (gestion_absence-synthese/python/),
+    # not the old absence2 folder — that folder gets archived off the live tree.
+    _here = Path(__file__).resolve().parent
+    EXCEL_FILE = str(_here / 'SUIVI ABSENCE DES STAGIAIRES 2.xlsx')
+
     # Change this to whatever folder you want!
-    OUTPUT_DIR = 'C:/Users/adams/Documents/git/absence2/python/jsonfiles/1er annee/' 
+    OUTPUT_DIR = str(_here / 'jsonfiles' / '1er annee') + '/'
     
     START_DATE = '2025-09-11'
     
