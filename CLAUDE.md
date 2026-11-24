@@ -71,7 +71,7 @@ Python scripts (python/) ──► read raw Excel sheets ──► write per-cla
 
 ## Build / Run
 
-```powershell
+```bash
 # Frontend
 npm install
 npm run dev        # vite dev server
